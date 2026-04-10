@@ -1,0 +1,125 @@
+'use client';
+
+/**
+ * Public View Page — fullscreen 3D viewer without any editing panels.
+ * Route: /view/[id]
+ */
+
+import { useRef, useCallback, useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
+import { useScene } from '@/hooks/useScene';
+
+const Viewer3D = dynamic(() => import('@/components/viewer/Viewer3D'), { ssr: false });
+const FpsCounter = dynamic(() => import('@/components/viewer/FpsCounter'), { ssr: false });
+
+export default function ViewPage() {
+  const params = useParams();
+  const sceneId = params?.id;
+  const viewerRef = useRef(null);
+  const [viewerReady, setViewerReady] = useState(false);
+  const [loadingAssets, setLoadingAssets] = useState(true);
+
+  const loadedAssetsRef = useRef({
+    glb: null,
+    sog: null,
+    skybox: null,
+    floor: null,
+  });
+
+  const { scene, loading, error } = useScene(sceneId);
+
+  const handleViewerReady = useCallback(() => {
+    setViewerReady(true);
+  }, []);
+
+  // Load assets when scene data arrives
+  useEffect(() => {
+    if (!viewerReady || !scene || !viewerRef.current) return;
+
+    const v = viewerRef.current;
+    const assets = scene.assets || {};
+    const loaded = loadedAssetsRef.current;
+    let hasAnyAsset = false;
+
+    const glbUrl = assets.glb?.url || null;
+    if (glbUrl !== loaded.glb) {
+      loaded.glb = glbUrl;
+      if (glbUrl) { v.loadGlb(glbUrl); hasAnyAsset = true; }
+    }
+
+    const sogUrl = assets.sog?.url || null;
+    if (sogUrl !== loaded.sog) {
+      loaded.sog = sogUrl;
+      if (sogUrl) { v.loadSog(sogUrl); hasAnyAsset = true; }
+    }
+
+    const skyUrl = assets.skybox?.url || null;
+    if (skyUrl !== loaded.skybox) {
+      loaded.skybox = skyUrl;
+      if (skyUrl) v.loadSkyboxTexture(skyUrl);
+    }
+
+    const floorUrl = assets.floor?.url || null;
+    if (floorUrl !== loaded.floor) {
+      loaded.floor = floorUrl;
+      if (floorUrl) v.loadFloorTexture(floorUrl);
+    }
+
+    // Hide loading after a short delay to let assets start rendering
+    setTimeout(() => setLoadingAssets(false), 800);
+  }, [viewerReady, scene]);
+
+  // Apply transforms
+  useEffect(() => {
+    if (!viewerReady || !scene?.transforms || !viewerRef.current) return;
+
+    const v = viewerRef.current;
+    const t = scene.transforms;
+    if (t.glb) v.applyTransform('glb', t.glb);
+    if (t.sog) v.applyTransform('sog', t.sog);
+    if (t.skybox) v.applyTransform('skybox', t.skybox);
+    if (t.floor) v.applyTransform('floor', t.floor);
+  }, [viewerReady, scene?.transforms]);
+
+  if (loading) {
+    return (
+      <div className="loading-overlay">
+        <div className="loader-content">
+          <div className="loader-spinner" />
+          <div className="loader-title">Cargando escena…</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !scene) {
+    return (
+      <div className="home-container">
+        <div className="home-card animate-fade">
+          <div className="home-header">
+            <h1>Escena no encontrada</h1>
+            <p>{error?.message || 'La escena solicitada no existe.'}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Viewer3D ref={viewerRef} onReady={handleViewerReady} />
+
+      {/* Loading overlay while assets load */}
+      {loadingAssets && (
+        <div className="loading-overlay" style={{ transition: 'opacity 0.6s ease' }}>
+          <div className="loader-content">
+            <div className="loader-spinner" />
+            <div className="loader-title">{scene.name}</div>
+            <div className="loader-status">Cargando escena…</div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
