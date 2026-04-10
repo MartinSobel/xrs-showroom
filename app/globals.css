@@ -314,6 +314,54 @@ body {
   background: rgba(68, 136, 255, 0.1);
 }
 
+/* ─── Rename Input ─── */
+.scene-rename-input {
+  flex: 1;
+  padding: 4px 8px;
+  background: var(--bg-input);
+  border: 1px solid var(--accent-blue);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  outline: none;
+  min-width: 0;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  box-shadow: 0 0 0 2px rgba(68, 136, 255, 0.15);
+}
+
+.scene-rename-input:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(68, 136, 255, 0.2);
+}
+
+.scene-item .scene-rename-btn {
+  opacity: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.scene-item:hover .scene-rename-btn {
+  opacity: 1;
+}
+
+.scene-item .scene-rename-btn:hover {
+  color: var(--accent-yellow);
+  background: rgba(252, 196, 25, 0.1);
+}
+
 /* ─── Create Scene ─── */
 .create-scene-row {
   display: flex;
