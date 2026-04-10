@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSceneList } from '@/hooks/useSceneList';
-import { createScene, deleteScene } from '@/lib/scenes';
+import { createScene, deleteScene, renameScene } from '@/lib/scenes';
 import { deleteSceneAssets } from '@/lib/storage';
 import FloatingPanel from './FloatingPanel';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -13,7 +13,18 @@ export default function SceneListPanel({ currentSceneId, position = 'panel-left'
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editingName, setEditingName] = useState('');
+  const editInputRef = useRef(null);
   const router = useRouter();
+
+  // Focus the input when entering edit mode
+  useEffect(() => {
+    if (editingId && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.select();
+    }
+  }, [editingId]);
 
   const handleCreate = async () => {
     const name = newName.trim();
@@ -44,6 +55,40 @@ export default function SceneListPanel({ currentSceneId, position = 'panel-left'
     setDeleteTarget(null);
   };
 
+  const startRename = (scene, e) => {
+    e.stopPropagation();
+    setEditingId(scene.id);
+    setEditingName(scene.name);
+  };
+
+  const commitRename = async () => {
+    const trimmed = editingName.trim();
+    if (trimmed && editingId) {
+      try {
+        await renameScene(editingId, trimmed);
+      } catch (err) {
+        console.error('Failed to rename scene:', err);
+      }
+    }
+    setEditingId(null);
+    setEditingName('');
+  };
+
+  const cancelRename = () => {
+    setEditingId(null);
+    setEditingName('');
+  };
+
+  const handleRenameKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      commitRename();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      cancelRename();
+    }
+  };
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') handleCreate();
   };
@@ -66,10 +111,43 @@ export default function SceneListPanel({ currentSceneId, position = 'panel-left'
               <div
                 key={scene.id}
                 className={`scene-item ${scene.id === currentSceneId ? 'active' : ''}`}
-                onClick={() => router.push(`/scenes/${scene.id}`)}
+                onClick={() => editingId !== scene.id && router.push(`/scenes/${scene.id}`)}
               >
-              <span className="scene-dot" />
-                <span className="scene-name">{scene.name}</span>
+                <span className="scene-dot" />
+                {editingId === scene.id ? (
+                  <input
+                    ref={editInputRef}
+                    className="scene-rename-input"
+                    type="text"
+                    value={editingName}
+                    onChange={(e) => setEditingName(e.target.value)}
+                    onKeyDown={handleRenameKeyDown}
+                    onBlur={commitRename}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                ) : (
+                  <span
+                    className="scene-name"
+                    onDoubleClick={(e) => startRename(scene, e)}
+                    title="Doble clic para renombrar"
+                  >
+                    {scene.name}
+                  </span>
+                )}
+                <button
+                  className="scene-rename-btn"
+                  title="Renombrar"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (editingId === scene.id) {
+                      commitRename();
+                    } else {
+                      startRename(scene, e);
+                    }
+                  }}
+                >
+                  ✏️
+                </button>
                 <button
                   className="scene-view"
                   title="Ver escena"

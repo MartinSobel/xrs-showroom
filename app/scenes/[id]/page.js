@@ -17,13 +17,17 @@ import RightPanelStack from '@/components/panels/RightPanelStack';
 
 // Dynamic import for client-only 3D components (no SSR)
 const Viewer3D = dynamic(() => import('@/components/viewer/Viewer3D'), { ssr: false });
-const FpsCounter = dynamic(() => import('@/components/viewer/FpsCounter'), { ssr: false });
+const PerformancePanel = dynamic(() => import('@/components/panels/PerformancePanel'), { ssr: false });
 
 export default function ScenePage() {
   const params = useParams();
   const sceneId = params?.id;
   const viewerRef = useRef(null);
   const [viewerReady, setViewerReady] = useState(false);
+  const [loadMetrics, setLoadMetrics] = useState(null);
+
+  // Track load timing
+  const loadTimingRef = useRef({ startTime: null, pending: 0, done: false });
 
   // Track which assets have been loaded to avoid re-loading
   const loadedAssetsRef = useRef({
@@ -49,54 +53,67 @@ export default function ScenePage() {
   }, []);
 
   // Load/update assets when scene data changes and viewer is ready
+  // Also track total load time across all assets
   useEffect(() => {
     if (!viewerReady || !scene || !viewerRef.current) return;
 
     const v = viewerRef.current;
     const assets = scene.assets || {};
     const loaded = loadedAssetsRef.current;
+    const timing = loadTimingRef.current;
 
-    // GLB
+    // Collect which assets need loading
+    const toLoad = [];
+
     const glbUrl = assets.glb?.url || null;
     if (glbUrl !== loaded.glb) {
       loaded.glb = glbUrl;
-      if (glbUrl) {
-        v.loadGlb(glbUrl);
-      } else {
-        v.removeGlb();
-      }
+      if (glbUrl) toLoad.push(() => v.loadGlb(glbUrl));
+      else v.removeGlb();
     }
 
-    // SOG
     const sogUrl = assets.sog?.url || null;
     if (sogUrl !== loaded.sog) {
       loaded.sog = sogUrl;
-      if (sogUrl) {
-        v.loadSog(sogUrl);
-      } else {
-        v.removeSog();
-      }
+      if (sogUrl) toLoad.push(() => v.loadSog(sogUrl));
+      else v.removeSog();
     }
 
-    // Skybox texture
     const skyUrl = assets.skybox?.url || null;
     if (skyUrl !== loaded.skybox) {
       loaded.skybox = skyUrl;
-      if (skyUrl) {
-        v.loadSkyboxTexture(skyUrl);
-      } else {
-        v.removeSkyboxTexture();
-      }
+      if (skyUrl) toLoad.push(() => v.loadSkyboxTexture(skyUrl));
+      else v.removeSkyboxTexture();
     }
 
-    // Floor texture
     const floorUrl = assets.floor?.url || null;
     if (floorUrl !== loaded.floor) {
       loaded.floor = floorUrl;
-      if (floorUrl) {
-        v.loadFloorTexture(floorUrl);
-      } else {
-        v.removeFloorTexture();
+      if (floorUrl) toLoad.push(() => v.loadFloorTexture(floorUrl));
+      else v.removeFloorTexture();
+    }
+
+    // If there are assets to load, measure total time
+    if (toLoad.length > 0 && !timing.done) {
+      timing.startTime = timing.startTime || performance.now();
+      timing.pending += toLoad.length;
+
+      for (const loader of toLoad) {
+        const p = loader();
+        // loadGlb etc are async — wait for them
+        if (p && typeof p.then === 'function') {
+          p.finally(() => {
+            timing.pending--;
+            if (timing.pending <= 0 && timing.startTime) {
+              const totalTime = Math.round(performance.now() - timing.startTime);
+              timing.done = true;
+              setLoadMetrics({ totalTime });
+              console.log(`[Perf] Total load time: ${totalTime}ms`);
+            }
+          });
+        } else {
+          timing.pending--;
+        }
       }
     }
   }, [viewerReady, scene]);
@@ -165,6 +182,9 @@ export default function ScenePage() {
         const result = await uploadAsset(assetType, file);
         // Reset loaded tracking so the effect will load the new asset
         loadedAssetsRef.current[assetType] = null;
+        // Reset load timing for new measurements
+        loadTimingRef.current = { startTime: null, pending: 0, done: false };
+        setLoadMetrics(null);
       } catch (err) {
         console.error(`Upload failed [${assetType}]:`, err);
       }
@@ -214,8 +234,8 @@ export default function ScenePage() {
       {/* Fullscreen 3D Viewer */}
       <Viewer3D ref={viewerRef} onReady={handleViewerReady} />
 
-      {/* FPS Counter */}
-      <FpsCounter />
+      {/* Performance Panel (bottom-left) — replaces FPS counter */}
+      <PerformancePanel scene={scene} loadMetrics={loadMetrics} />
 
       {/* Left Panel — Scene List */}
       <SceneListPanel currentSceneId={sceneId} position="panel-left" />

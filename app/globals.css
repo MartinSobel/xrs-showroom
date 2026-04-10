@@ -161,6 +161,13 @@ body {
   max-height: calc(100vh - 32px);
 }
 
+.panel-bottom-left {
+  bottom: 16px;
+  left: 16px;
+  width: 260px;
+  max-height: calc(50vh - 20px);
+}
+
 /* ─── Right Panel Stack (accordion container) ─── */
 .right-panel-stack {
   position: fixed;
@@ -719,41 +726,99 @@ body {
 }
 
 /* ═══════════════════════════════════════
-   FPS COUNTER
+   PERFORMANCE PANEL
    ═══════════════════════════════════════ */
-.fps-counter {
-  position: fixed;
-  bottom: 16px;
-  left: 16px;
-  z-index: 9999;
-  min-width: 64px;
-  padding: 6px 12px;
-  background: rgba(12, 12, 20, 0.75);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--accent-green);
+.perf-panel {
   font-family: var(--font-mono);
-  font-size: 0.78rem;
-  font-weight: 600;
-  text-align: center;
-  pointer-events: none;
-  user-select: none;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-  transition: color 0.3s ease;
 }
 
-.fps-counter .fps-value {
-  font-size: 1rem;
+.perf-fps-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.perf-fps-value {
+  font-size: 1.4rem;
   font-weight: 700;
+  line-height: 1;
 }
 
-.fps-counter .fps-label {
+.perf-fps-label {
   font-size: 0.6rem;
-  opacity: 0.5;
-  margin-left: 3px;
-  font-weight: 400;
+  color: var(--text-muted);
   text-transform: uppercase;
+  font-weight: 400;
+}
+
+.perf-section {
+  margin-bottom: 6px;
+}
+
+.perf-section-title {
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.perf-empty {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.perf-asset-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 0;
+  font-size: 0.68rem;
+}
+
+.perf-asset-type {
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+}
+
+.perf-asset-size {
+  color: var(--text-primary);
+}
+
+.perf-time-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 0.72rem;
+}
+
+.perf-time-icon {
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.perf-time-label {
+  flex: 1;
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+}
+
+.perf-time-value {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-align: right;
+  min-width: 48px;
+}
+
+.perf-time-value.measured {
+  color: var(--accent-green);
 }
 
 /* ═══════════════════════════════════════
