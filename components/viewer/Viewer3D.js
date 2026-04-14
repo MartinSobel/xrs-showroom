@@ -28,6 +28,7 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
     camera: null,
     controls: null,
     animationId: null,
+    sparkRenderer: null,
     glbModel: null,
     splatMesh: null,
     skyboxMesh: null,
@@ -261,7 +262,15 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
     removeSog();
 
     try {
-      const { SplatMesh } = await import('@sparkjsdev/spark');
+      const { SparkRenderer, SplatMesh } = await import('@sparkjsdev/spark');
+
+      // Ensure SparkRenderer exists in the scene (required by Spark 2.0)
+      if (!s.sparkRenderer) {
+        const spark = new SparkRenderer({ renderer: s.renderer });
+        s.scene.add(spark);
+        s.sparkRenderer = spark;
+        console.log('[Viewer] SparkRenderer created (Spark 2.0)');
+      }
 
       console.log('[Viewer] Loading SOG:', url);
 
@@ -283,8 +292,10 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
       const splatMesh = new SplatMesh({
         fileBytes: bytes.buffer,
         fileName: 'splat.sog',
+        lod: true,
+        extSplats: true,
         onLoad: () => {
-          console.log('[Viewer] ✓ SOG splat loaded');
+          console.log('[Viewer] ✓ SOG splat loaded (LoD + ExtSplats enabled)');
         },
       });
 
@@ -571,6 +582,10 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
       if (s.animationId) cancelAnimationFrame(s.animationId);
       s._resizeObserver?.disconnect();
       s.controls?.dispose();
+      if (s.sparkRenderer) {
+        s.sparkRenderer.dispose();
+        s.sparkRenderer = null;
+      }
       if (s.renderer) {
         s.renderer.domElement.remove();
         s.renderer.dispose();
