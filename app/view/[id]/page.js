@@ -82,6 +82,15 @@ export default function ViewPage() {
     if (t.floor) v.applyTransform('floor', t.floor);
   }, [viewerReady, scene?.transforms]);
 
+  // Apply orbit settings when they change from Firebase
+  useEffect(() => {
+    if (!viewerReady || !viewerRef.current) return;
+    const orbit = scene?.orbit;
+    if (orbit) {
+      viewerRef.current.applyOrbit(orbit);
+    }
+  }, [viewerReady, scene?.orbit]);
+
   if (loading) {
     return (
       <div className="loading-overlay">
