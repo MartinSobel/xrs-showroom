@@ -2,14 +2,16 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import FloatingPanel from './FloatingPanel';
+import HelpTooltip from '@/components/ui/HelpTooltip';
 
 /**
  * Single control row: label + range slider + number input.
  */
-function ControlRow({ label, labelClass, value, min, max, step, onChange }) {
+function ControlRow({ label, labelClass, value, min, max, step, onChange, help }) {
   return (
     <div className="transform-row">
       <span className={`transform-label ${labelClass}`}>{label}</span>
+      {help && <HelpTooltip text={help} />}
       <input
         type="range"
         min={min}
@@ -42,7 +44,7 @@ export const DEFAULT_ORBIT = {
 };
 
 /**
- * Orbit Controls Panel — adjusts zoom min/max and pitch/yaw limits.
+ * Camera Panel — adjusts antialiasing, zoom min/max and pitch/yaw limits.
  * Rendered inside RightPanelStack with controlled collapse.
  */
 export default function OrbitPanel({ scene, onOrbitChange, onApplyOrbit, collapsed, onToggle }) {
@@ -96,6 +98,7 @@ export default function OrbitPanel({ scene, onOrbitChange, onApplyOrbit, collaps
           max={2}
           step={0.25}
           onChange={(v) => updateField('pixelRatio', v)}
+          help="Pixel Ratio — controla la calidad de renderizado. Mayor valor = mejor nitidez, más consumo de GPU"
         />
       </div>
 
@@ -111,6 +114,7 @@ export default function OrbitPanel({ scene, onOrbitChange, onApplyOrbit, collaps
           max={100}
           step={0.5}
           onChange={(v) => updateField('zoomMin', v)}
+          help="Distancia mínima de la cámara al punto de enfoque"
         />
         <ControlRow
           label="Max"
@@ -120,6 +124,7 @@ export default function OrbitPanel({ scene, onOrbitChange, onApplyOrbit, collaps
           max={5000}
           step={10}
           onChange={(v) => updateField('zoomMax', v)}
+          help="Distancia máxima de la cámara al punto de enfoque"
         />
       </div>
 
@@ -136,6 +141,7 @@ export default function OrbitPanel({ scene, onOrbitChange, onApplyOrbit, collaps
           max={0}
           step={1}
           onChange={(v) => updateField('pitchMin', v)}
+          help="Ángulo vertical mínimo — limita cuánto puede mirar hacia abajo"
         />
         <ControlRow
           label="Max"
@@ -145,6 +151,7 @@ export default function OrbitPanel({ scene, onOrbitChange, onApplyOrbit, collaps
           max={90}
           step={1}
           onChange={(v) => updateField('pitchMax', v)}
+          help="Ángulo vertical máximo — limita cuánto puede mirar hacia arriba"
         />
       </div>
 
@@ -161,6 +168,7 @@ export default function OrbitPanel({ scene, onOrbitChange, onApplyOrbit, collaps
           max={0}
           step={1}
           onChange={(v) => updateField('yawMin', v)}
+          help="Ángulo horizontal mínimo — limita la rotación hacia la izquierda"
         />
         <ControlRow
           label="Max"
@@ -170,6 +178,7 @@ export default function OrbitPanel({ scene, onOrbitChange, onApplyOrbit, collaps
           max={180}
           step={1}
           onChange={(v) => updateField('yawMax', v)}
+          help="Ángulo horizontal máximo — limita la rotación hacia la derecha"
         />
       </div>
     </FloatingPanel>
