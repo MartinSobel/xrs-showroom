@@ -35,11 +35,15 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
     floorMesh: null,
     skyboxRawTexture: null,
     floorRawTexture: null,
+    pmremGenerator: null,
+    envMap: null,
     THREE: null,
     optimizer: null,
     clock: null,
     // Store transforms so they can be applied after models load
     pendingTransforms: { glb: null, sog: null, skybox: null, floor: null },
+    // Store material overrides so they can be applied after GLB loads
+    pendingMaterialOverrides: null,
   });
 
   // Expose methods to parent via ref
@@ -67,6 +71,16 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
     removeSkyboxTexture: () => removeSkyboxTex(),
     removeFloorTexture: () => removeFloorTex(),
     getGlbModel: () => stateRef.current.glbModel,
+    applyMaterialOverrides: (overrides) => {
+      const s = stateRef.current;
+      if (!overrides) return;
+      // Always store for later (in case GLB reloads)
+      s.pendingMaterialOverrides = overrides;
+      // Apply immediately if model already loaded
+      if (s.glbModel) {
+        applyMaterialOverridesToModel(s.glbModel, overrides);
+      }
+    },
   }));
 
   /* ─── Orbit Controls Application ─── */
@@ -322,6 +336,11 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
         applyTransformToObject('glb', s.pendingTransforms.glb);
       }
 
+      // Apply pending material overrides if they exist
+      if (s.pendingMaterialOverrides) {
+        applyMaterialOverridesToModel(model, s.pendingMaterialOverrides);
+      }
+
       // Fit camera
       fitCamera(model);
 
@@ -427,6 +446,26 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
         s.skyboxMesh.material.needsUpdate = true;
       }
 
+      // ─── Generate environment map for PBR reflections ───
+      if (s.pmremGenerator) {
+        // Dispose previous env map if any
+        if (s.envMap) {
+          s.envMap.dispose();
+          s.envMap = null;
+        }
+        // Create an equirectangular texture for PMREM
+        const envTex = new THREE.Texture(image);
+        envTex.mapping = THREE.EquirectangularReflectionMapping;
+        envTex.colorSpace = THREE.SRGBColorSpace;
+        envTex.needsUpdate = true;
+
+        const envRT = s.pmremGenerator.fromEquirectangular(envTex);
+        s.envMap = envRT.texture;
+        s.scene.environment = s.envMap;
+        envTex.dispose();
+        console.log('[Viewer] ✓ Environment map generated for PBR reflections');
+      }
+
       URL.revokeObjectURL(blobUrl);
       console.log('[Viewer] ✓ Skybox texture loaded');
     } catch (err) {
@@ -505,6 +544,12 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
       s.skyboxMesh.material.map = null;
       s.skyboxMesh.material.needsUpdate = true;
     }
+    // Remove environment map
+    if (s.envMap) {
+      s.envMap.dispose();
+      s.envMap = null;
+      s.scene.environment = null;
+    }
     s.skyboxRawTexture = null;
   }, []);
 
@@ -573,6 +618,10 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
       renderer.shadowMap.enabled = false;
       container.appendChild(renderer.domElement);
       s.renderer = renderer;
+
+      // ─── PMREM Generator (for environment map / reflections) ───
+      s.pmremGenerator = new THREE.PMREMGenerator(renderer);
+      s.pmremGenerator.compileEquirectangularShader();
 
       // ─── Scene ───
       const scene = new THREE.Scene();
@@ -666,6 +715,14 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
         s.sparkRenderer.dispose();
         s.sparkRenderer = null;
       }
+      if (s.pmremGenerator) {
+        s.pmremGenerator.dispose();
+        s.pmremGenerator = null;
+      }
+      if (s.envMap) {
+        s.envMap.dispose();
+        s.envMap = null;
+      }
       if (s.renderer) {
         s.renderer.domElement.remove();
         s.renderer.dispose();
@@ -676,6 +733,45 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
 
   return <div ref={containerRef} className="viewer-canvas-container" />;
 });
+
+/* ─── Apply material overrides helper ─── */
+function sanitizeMatKey(name) {
+  return name.replace(/[.#$/\[\]]/g, '_');
+}
+
+function applyMaterialOverridesToModel(model, overrides) {
+  if (!model || !overrides) return;
+  let count = 0;
+  model.traverse((child) => {
+    if (child.isMesh) {
+      const mats = Array.isArray(child.material) ? child.material : [child.material];
+      for (const mat of mats) {
+        const key = sanitizeMatKey(mat.name || '');
+        if (overrides[key]) {
+          const saved = overrides[key];
+          for (const [prop, value] of Object.entries(saved)) {
+            switch (prop) {
+              case 'color': mat.color?.set?.(`#${value}`); break;
+              case 'emissive': mat.emissive?.set?.(`#${value}`); break;
+              case 'sheenColor': mat.sheenColor?.set?.(`#${value}`); break;
+              case 'transparent': mat.transparent = value; break;
+              case 'depthWrite': mat.depthWrite = value; break;
+              case 'visible': mat.visible = value; break;
+              case 'flatShading': mat.flatShading = value; break;
+              case 'side': mat.side = value; break;
+              default:
+                if (mat[prop] !== undefined) mat[prop] = value;
+                break;
+            }
+          }
+          mat.needsUpdate = true;
+          count++;
+        }
+      }
+    }
+  });
+  console.log(`[Viewer] Material overrides applied to ${count} materials`);
+}
 
 /* ─── Dispose helper ─── */
 function disposeObject(obj) {

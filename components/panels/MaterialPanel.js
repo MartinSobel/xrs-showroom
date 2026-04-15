@@ -94,6 +94,25 @@ function SelectRow({ label, value, options, onChange }) {
 }
 
 /**
+ * Properties that are serializable and should be saved to Firebase.
+ * Excludes non-serializable values like texture maps, uuid, type, maps array.
+ */
+const SAVEABLE_KEYS = [
+  'color', 'opacity', 'transparent', 'depthWrite', 'side', 'visible',
+  'alphaTest', 'flatShading', 'metalness', 'roughness', 'transmission',
+  'thickness', 'ior', 'clearcoat', 'clearcoatRoughness', 'sheen',
+  'sheenRoughness', 'sheenColor', 'reflectivity', 'emissive', 'emissiveIntensity',
+];
+
+/**
+ * Sanitize a material name for use as a Firebase RTDB key.
+ * Firebase keys cannot contain: . # $ / [ ]
+ */
+function sanitizeKey(name) {
+  return name.replace(/[.#$/\[\]]/g, '_');
+}
+
+/**
  * Extract a snapshot of editable properties from a Three.js material.
  */
 function extractMaterialProps(mat) {
@@ -149,9 +168,64 @@ function extractMaterialProps(mat) {
 }
 
 /**
+ * Apply saved overrides from Firebase to a Three.js material.
+ */
+function applySavedOverrides(mat, overrides) {
+  if (!overrides || !mat) return;
+
+  for (const [key, value] of Object.entries(overrides)) {
+    switch (key) {
+      case 'color':
+        mat.color?.set?.(`#${value}`);
+        break;
+      case 'emissive':
+        mat.emissive?.set?.(`#${value}`);
+        break;
+      case 'sheenColor':
+        mat.sheenColor?.set?.(`#${value}`);
+        break;
+      case 'transparent':
+        mat.transparent = value;
+        break;
+      case 'depthWrite':
+        mat.depthWrite = value;
+        break;
+      case 'visible':
+        mat.visible = value;
+        break;
+      case 'flatShading':
+        mat.flatShading = value;
+        break;
+      case 'side':
+        mat.side = value;
+        break;
+      default:
+        if (mat[key] !== undefined) {
+          mat[key] = value;
+        }
+        break;
+    }
+  }
+  mat.needsUpdate = true;
+}
+
+/**
+ * Extract only the saveable properties from material props snapshot.
+ */
+function extractSaveableProps(props) {
+  const out = {};
+  for (const key of SAVEABLE_KEYS) {
+    if (props[key] !== undefined) {
+      out[key] = props[key];
+    }
+  }
+  return out;
+}
+
+/**
  * Single material accordion with all editable parameters.
  */
-function MaterialAccordion({ matRef, initialProps, open, onToggle }) {
+function MaterialAccordion({ matRef, initialProps, open, onToggle, onPropertyChange }) {
   const [props, setProps] = useState(initialProps);
 
   const update = useCallback((key, value) => {
@@ -192,8 +266,13 @@ function MaterialAccordion({ matRef, initialProps, open, onToggle }) {
     }
     mat.needsUpdate = true;
 
-    setProps((prev) => ({ ...prev, [key]: value }));
-  }, [matRef]);
+    setProps((prev) => {
+      const next = { ...prev, [key]: value };
+      // Notify parent to persist
+      onPropertyChange?.(next);
+      return next;
+    });
+  }, [matRef, onPropertyChange]);
 
   // Material type badge color
   const typeColors = {
@@ -294,11 +373,35 @@ function MaterialAccordion({ matRef, initialProps, open, onToggle }) {
 /**
  * Main MaterialPanel component.
  */
-export default function MaterialPanel({ viewerRef, viewerReady }) {
+export default function MaterialPanel({ viewerRef, viewerReady, savedMaterials, onMaterialsChange }) {
   const [materials, setMaterials] = useState([]);
   const [openMat, setOpenMat] = useState(null);
   const [panelCollapsed, setPanelCollapsed] = useState(false);
   const matRefsMap = useRef(new Map());
+  // Track current props for all materials (for saving)
+  const currentPropsRef = useRef(new Map());
+  // Track whether saved overrides have been applied already
+  const appliedOverridesRef = useRef(false);
+
+  // Collect all current material properties and save to Firebase
+  const collectAndSave = useCallback(() => {
+    if (!onMaterialsChange) return;
+
+    const allOverrides = {};
+    for (const [uuid, props] of currentPropsRef.current) {
+      const name = props.name;
+      if (name && name !== '(sin nombre)') {
+        allOverrides[sanitizeKey(name)] = extractSaveableProps(props);
+      }
+    }
+    onMaterialsChange(allOverrides);
+  }, [onMaterialsChange]);
+
+  // Handle property change from a MaterialAccordion
+  const handlePropertyChange = useCallback((uuid, updatedProps) => {
+    currentPropsRef.current.set(uuid, updatedProps);
+    collectAndSave();
+  }, [collectAndSave]);
 
   // Extract materials from the GLB model
   const refreshMaterials = useCallback(() => {
@@ -322,14 +425,29 @@ export default function MaterialPanel({ viewerRef, viewerReady }) {
       }
     });
 
+    // Apply saved overrides from Firebase (only once per model load)
+    if (savedMaterials && !appliedOverridesRef.current) {
+      for (const [uuid, mat] of seen) {
+        const matName = mat.name || '(sin nombre)';
+        const key = sanitizeKey(matName);
+        if (savedMaterials[key]) {
+          applySavedOverrides(mat, savedMaterials[key]);
+          console.log(`[Materials] Applied saved overrides for "${matName}"`);
+        }
+      }
+      appliedOverridesRef.current = true;
+    }
+
     const matList = [];
     for (const [uuid, mat] of seen) {
-      matList.push(extractMaterialProps(mat));
+      const props = extractMaterialProps(mat);
+      matList.push(props);
+      currentPropsRef.current.set(uuid, props);
     }
     // Sort alphabetically by name
     matList.sort((a, b) => a.name.localeCompare(b.name));
     setMaterials(matList);
-  }, [viewerRef]);
+  }, [viewerRef, savedMaterials]);
 
   // Listen for GLB load events
   useEffect(() => {
@@ -387,6 +505,7 @@ export default function MaterialPanel({ viewerRef, viewerReady }) {
               initialProps={mat}
               open={openMat === mat.uuid}
               onToggle={() => toggleMat(mat.uuid)}
+              onPropertyChange={(updatedProps) => handlePropertyChange(mat.uuid, updatedProps)}
             />
           ))}
         </div>

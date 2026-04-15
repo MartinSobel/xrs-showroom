@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { subscribeScene, updateTransforms as dbUpdateTransforms, updateOrbit as dbUpdateOrbit, updateSceneAsset, removeSceneAsset } from '@/lib/scenes';
+import { subscribeScene, updateTransforms as dbUpdateTransforms, updateOrbit as dbUpdateOrbit, updateMaterials as dbUpdateMaterials, updateSceneAsset, removeSceneAsset } from '@/lib/scenes';
 import { uploadAsset as storageUpload, deleteAsset as storageDelete } from '@/lib/storage';
 
 export function useScene(sceneId) {
@@ -62,6 +62,24 @@ export function useScene(sceneId) {
 
       debounceTimers.current.orbit = setTimeout(() => {
         dbUpdateOrbit(sceneId, orbit).catch(console.error);
+      }, 500);
+    },
+    [sceneId]
+  );
+
+  /**
+   * Update material overrides with debounce.
+   */
+  const updateMaterials = useCallback(
+    (materials) => {
+      if (!sceneId) return;
+
+      if (debounceTimers.current.materials) {
+        clearTimeout(debounceTimers.current.materials);
+      }
+
+      debounceTimers.current.materials = setTimeout(() => {
+        dbUpdateMaterials(sceneId, materials).catch(console.error);
       }, 500);
     },
     [sceneId]
@@ -144,6 +162,7 @@ export function useScene(sceneId) {
     uploadProgress,
     updateTransforms,
     updateOrbit,
+    updateMaterials,
     uploadAsset,
     removeAsset,
   };

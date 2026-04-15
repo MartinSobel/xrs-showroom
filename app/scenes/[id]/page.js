@@ -46,6 +46,7 @@ export default function ScenePage() {
     uploadProgress,
     updateTransforms,
     updateOrbit,
+    updateMaterials,
     uploadAsset,
     removeAsset,
   } = useScene(sceneId);
@@ -140,6 +141,12 @@ export default function ScenePage() {
       viewerRef.current.applyOrbit(orbit);
     }
   }, [viewerReady, scene?.orbit]);
+
+  // Apply saved material overrides when they arrive from Firebase
+  useEffect(() => {
+    if (!viewerReady || !viewerRef.current || !scene?.materials) return;
+    viewerRef.current.applyMaterialOverrides(scene.materials);
+  }, [viewerReady, scene?.materials]);
 
   // Handle transform changes from the panel (live update + debounced save)
   const handleTransformChange = useCallback(
@@ -240,7 +247,12 @@ export default function ScenePage() {
       <PerformancePanel scene={scene} loadMetrics={loadMetrics} />
 
       {/* Material Panel (bottom-right) */}
-      <MaterialPanel viewerRef={viewerRef} viewerReady={viewerReady} />
+      <MaterialPanel
+        viewerRef={viewerRef}
+        viewerReady={viewerReady}
+        savedMaterials={scene?.materials || null}
+        onMaterialsChange={updateMaterials}
+      />
 
 
       {/* Left Panel — Scene List */}

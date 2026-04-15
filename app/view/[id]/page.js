@@ -91,6 +91,12 @@ export default function ViewPage() {
     }
   }, [viewerReady, scene?.orbit]);
 
+  // Apply saved material overrides when they arrive from Firebase
+  useEffect(() => {
+    if (!viewerReady || !viewerRef.current || !scene?.materials) return;
+    viewerRef.current.applyMaterialOverrides(scene.materials);
+  }, [viewerReady, scene?.materials]);
+
   if (loading) {
     return (
       <div className="loading-overlay">
