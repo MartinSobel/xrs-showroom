@@ -225,15 +225,89 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
 
       // Disable shadows (splat-optimized) and set render order so GLB
       // always draws BEFORE the SOG splat (which composites on top).
+      // Transparent materials (glass, railings) need special handling:
+      //   - Opaque meshes:      renderOrder = -2 (draw first)
+      //   - Transparent meshes:  renderOrder = -1, depthWrite = false
+      //     (draw after opaques, before SOG, with correct alpha blending)
       model.renderOrder = -2;
       model.traverse((child) => {
         if (child.isMesh) {
           child.castShadow = false;
           child.receiveShadow = false;
           child.frustumCulled = false;
-          child.renderOrder = -2;
+
+          const mats = Array.isArray(child.material)
+            ? child.material
+            : [child.material];
+
+          // Detect transparency: either already flagged, or glass by name
+          const meshName = (child.name || '').toLowerCase();
+          const hasTransparent = mats.some((m) => {
+            const matName = (m.name || '').toLowerCase();
+            const isGlassByName =
+              meshName.includes('glass') || matName.includes('glass') ||
+              meshName.includes('vidrio') || matName.includes('vidrio');
+            return (
+              m.transparent ||
+              (m.opacity !== undefined && m.opacity < 1) ||
+              (m.transmission !== undefined && m.transmission > 0) ||
+              isGlassByName
+            );
+          });
+
+          if (hasTransparent) {
+            // Transparent / glass mesh
+            child.renderOrder = -1;
+            for (const m of mats) {
+              if (m.type === 'MeshPhysicalMaterial') {
+                // Use physically-based transmission for clear glass
+                m.transmission = 1.0;
+                m.thickness = 0.1;
+                m.roughness = 0.02;
+                m.ior = 1.45;
+                m.metalness = 0;
+                m.transparent = true;
+                m.depthWrite = false;
+                // Force near-white color for clear glass (no dark tint)
+                if (m.color) m.color.set(0xffffff);
+              } else {
+                // Fallback: simple alpha transparency
+                m.transparent = true;
+                m.opacity = 0.3;
+                m.depthWrite = false;
+              }
+              m.needsUpdate = true;
+            }
+            console.log(`[Viewer] Glass material applied: mesh="${child.name}", mat="${mats.map(m=>m.name).join(', ')}"`);
+          } else {
+            // Opaque mesh — draw before transparent
+            child.renderOrder = -2;
+          }
         }
       });
+
+      // ─── DEBUG: Log all material properties for transparency diagnosis ───
+      console.group('[Viewer] GLB Material Debug');
+      model.traverse((child) => {
+        if (child.isMesh) {
+          const mats = Array.isArray(child.material) ? child.material : [child.material];
+          for (const m of mats) {
+            console.log(`  Mesh: "${child.name}" | Material: "${m.name}" | Type: ${m.type}`, {
+              transparent: m.transparent,
+              opacity: m.opacity,
+              alphaTest: m.alphaTest,
+              alphaMap: !!m.alphaMap,
+              transmission: m.transmission,
+              blending: m.blending,
+              side: m.side,
+              depthWrite: m.depthWrite,
+              renderOrder: child.renderOrder,
+              color: m.color?.getHexString?.(),
+            });
+          }
+        }
+      });
+      console.groupEnd();
 
       // Optimize
       if (!s.optimizer) s.optimizer = new Optimizer(THREE);
