@@ -18,6 +18,8 @@ import RightPanelStack from '@/components/panels/RightPanelStack';
 // Dynamic import for client-only 3D components (no SSR)
 const Viewer3D = dynamic(() => import('@/components/viewer/Viewer3D'), { ssr: false });
 const PerformancePanel = dynamic(() => import('@/components/panels/PerformancePanel'), { ssr: false });
+const MaterialPanel = dynamic(() => import('@/components/panels/MaterialPanel'), { ssr: false });
+
 
 export default function ScenePage() {
   const params = useParams();
@@ -236,6 +238,10 @@ export default function ScenePage() {
 
       {/* Performance Panel (bottom-left) — replaces FPS counter */}
       <PerformancePanel scene={scene} loadMetrics={loadMetrics} />
+
+      {/* Material Panel (bottom-right) */}
+      <MaterialPanel viewerRef={viewerRef} viewerReady={viewerReady} />
+
 
       {/* Left Panel — Scene List */}
       <SceneListPanel currentSceneId={sceneId} position="panel-left" />

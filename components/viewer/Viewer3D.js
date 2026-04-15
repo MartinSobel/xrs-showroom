@@ -66,6 +66,7 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
     removeSog: () => removeSog(),
     removeSkyboxTexture: () => removeSkyboxTex(),
     removeFloorTexture: () => removeFloorTex(),
+    getGlbModel: () => stateRef.current.glbModel,
   }));
 
   /* ─── Orbit Controls Application ─── */
