@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { subscribeScene, updateTransforms as dbUpdateTransforms, updateOrbit as dbUpdateOrbit, updateMaterials as dbUpdateMaterials, updateSceneAsset, removeSceneAsset } from '@/lib/scenes';
+import { subscribeScene, updateTransforms as dbUpdateTransforms, updateOrbit as dbUpdateOrbit, updateMaterials as dbUpdateMaterials, updateUnidades as dbUpdateUnidades, updateSceneAsset, removeSceneAsset } from '@/lib/scenes';
 import { uploadAsset as storageUpload, deleteAsset as storageDelete } from '@/lib/storage';
 
 export function useScene(sceneId) {
@@ -80,6 +80,24 @@ export function useScene(sceneId) {
 
       debounceTimers.current.materials = setTimeout(() => {
         dbUpdateMaterials(sceneId, materials).catch(console.error);
+      }, 500);
+    },
+    [sceneId]
+  );
+
+  /**
+   * Update unidades settings with debounce.
+   */
+  const updateUnidades = useCallback(
+    (unidades) => {
+      if (!sceneId) return;
+
+      if (debounceTimers.current.unidades) {
+        clearTimeout(debounceTimers.current.unidades);
+      }
+
+      debounceTimers.current.unidades = setTimeout(() => {
+        dbUpdateUnidades(sceneId, unidades).catch(console.error);
       }, 500);
     },
     [sceneId]
@@ -163,6 +181,7 @@ export function useScene(sceneId) {
     updateTransforms,
     updateOrbit,
     updateMaterials,
+    updateUnidades,
     uploadAsset,
     removeAsset,
   };

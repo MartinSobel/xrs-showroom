@@ -9,10 +9,11 @@ import { useRef, useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { useScene } from '@/hooks/useScene';
-import SceneListPanel from '@/components/panels/SceneListPanel';
+import UnidadesListPanel from '@/components/panels/UnidadesListPanel';
 import SceneEditorPanel from '@/components/panels/SceneEditorPanel';
 
 import OrbitPanel from '@/components/panels/OrbitPanel';
+import UnidadesPanel from '@/components/panels/UnidadesPanel';
 import RightPanelStack from '@/components/panels/RightPanelStack';
 
 // Dynamic import for client-only 3D components (no SSR)
@@ -27,6 +28,7 @@ export default function ScenePage() {
   const viewerRef = useRef(null);
   const [viewerReady, setViewerReady] = useState(false);
   const [loadMetrics, setLoadMetrics] = useState(null);
+  const [unidadesData, setUnidadesData] = useState([]);
 
   // Track load timing
   const loadTimingRef = useRef({ startTime: null, pending: 0, done: false });
@@ -47,6 +49,7 @@ export default function ScenePage() {
     updateTransforms,
     updateOrbit,
     updateMaterials,
+    updateUnidades,
     uploadAsset,
     removeAsset,
   } = useScene(sceneId);
@@ -255,8 +258,8 @@ export default function ScenePage() {
       />
 
 
-      {/* Left Panel — Scene List */}
-      <SceneListPanel currentSceneId={sceneId} position="panel-left" />
+      {/* Left Panel — Unidades List */}
+      <UnidadesListPanel unidades={unidadesData} position="panel-left" />
 
       {/* Right Panel Stack — Accordion: only one open at a time */}
       <RightPanelStack>
@@ -279,6 +282,14 @@ export default function ScenePage() {
               onApplyOrbit={handleApplyOrbit}
               collapsed={activePanel !== 'orbit'}
               onToggle={() => toggle('orbit')}
+            />
+
+            <UnidadesPanel
+              scene={scene}
+              onUnidadesChange={updateUnidades}
+              onDataLoaded={setUnidadesData}
+              collapsed={activePanel !== 'unidades'}
+              onToggle={() => toggle('unidades')}
             />
           </>
         )}
