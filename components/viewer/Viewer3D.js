@@ -44,6 +44,10 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
     pendingTransforms: { glb: null, sog: null, skybox: null, floor: null },
     // Store material overrides so they can be applied after GLB loads
     pendingMaterialOverrides: null,
+    // Store the GLB model bounding-box center for orbit target
+    glbCenter: null,
+    // Store last orbit settings so they can be re-applied after GLB loads
+    pendingOrbit: null,
   });
 
   // Expose methods to parent via ref
@@ -87,6 +91,14 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
   const applyOrbitToControls = useCallback((orbit) => {
     const s = stateRef.current;
     if (!s.controls || !orbit) return;
+
+    // Always store the latest orbit for re-application after GLB loads
+    s.pendingOrbit = orbit;
+
+    // Orbit target — use GLB model center if available, otherwise scene origin
+    if (s.glbCenter) {
+      s.controls.target.copy(s.glbCenter);
+    }
 
     // Zoom / distance limits
     s.controls.minDistance = orbit.zoomMin ?? 0.5;
@@ -577,6 +589,10 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
     let dist = maxDim / (2 * Math.tan(fov / 2));
     dist *= 1.5;
 
+    // Store GLB center as the orbit target
+    s.glbCenter = center.clone();
+    console.log('[Viewer] GLB center (orbit target):', center.x.toFixed(2), center.y.toFixed(2), center.z.toFixed(2));
+
     s.camera.position.copy(center);
     s.camera.position.x += dist * 0.6;
     s.camera.position.y += dist * 0.4;
@@ -584,7 +600,12 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
     s.camera.lookAt(center);
     s.controls.target.copy(center);
     s.controls.update();
-  }, []);
+
+    // Re-apply pending orbit settings now that we have the GLB center
+    if (s.pendingOrbit) {
+      applyOrbitToControls(s.pendingOrbit);
+    }
+  }, [applyOrbitToControls]);
 
   /* ─── Initialize Three.js ─── */
   useEffect(() => {
