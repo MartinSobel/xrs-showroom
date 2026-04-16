@@ -41,6 +41,8 @@ export const DEFAULT_ORBIT = {
   yawMin: -180,
   yawMax: 180,
   pixelRatio: 1,
+  pitchSnapEnabled: false,
+  pitchSnapTarget: 90,
 };
 
 /**
@@ -153,9 +155,33 @@ export default function OrbitPanel({ scene, onOrbitChange, onApplyOrbit, collaps
           onChange={(v) => updateField('pitchMax', v)}
           help="Ángulo vertical máximo — limita cuánto puede mirar hacia arriba"
         />
-      </div>
 
-      <div className="section-divider" />
+        {/* Pitch Snap — inside the Pitch section */}
+        <div className="transform-row">
+          <span className="transform-label label-pitch">Snap</span>
+          <HelpTooltip text="Al llegar al pitch máximo, la cámara se anima al ángulo indicado. Al volver a bajar, regresa suavemente al pitch máximo" />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', marginLeft: 'auto' }}>
+            <input
+              type="checkbox"
+              checked={local.pitchSnapEnabled ?? false}
+              onChange={(e) => updateField('pitchSnapEnabled', e.target.checked)}
+            />
+            <span style={{ fontSize: 11, opacity: 0.7 }}>{local.pitchSnapEnabled ? 'On' : 'Off'}</span>
+          </label>
+        </div>
+        {local.pitchSnapEnabled && (
+          <ControlRow
+            label="Angl"
+            labelClass="label-pitch"
+            value={local.pitchSnapTarget ?? 90}
+            min={0}
+            max={90}
+            step={1}
+            onChange={(v) => updateField('pitchSnapTarget', v)}
+            help="Ángulo al que se anima la cámara al alcanzar el pitch máximo (90 = vista cenital)"
+          />
+        )}
+      </div>
 
       {/* ─── Yaw (horizontal angle) ─── */}
       <div className="transform-section">

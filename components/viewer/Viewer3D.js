@@ -48,6 +48,8 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
     glbCenter: null,
     // Store last orbit settings so they can be re-applied after GLB loads
     pendingOrbit: null,
+    // Pitch snap animation state machine
+    pitchSnap: { state: 'idle', originalMinPolar: 0 },
   });
 
   // Expose methods to parent via ref
@@ -94,6 +96,11 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
 
     // Always store the latest orbit for re-application after GLB loads
     s.pendingOrbit = orbit;
+
+    // Reset pitch snap state when orbit settings change
+    s.pitchSnap.state = 'idle';
+    s.controls.enableRotate = true;
+    s.controls.enablePan = true;
 
     // Orbit target — use GLB model center if available, otherwise scene origin
     if (s.glbCenter) {
@@ -305,7 +312,7 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
               }
               m.needsUpdate = true;
             }
-            console.log(`[Viewer] Glass material applied: mesh="${child.name}", mat="${mats.map(m=>m.name).join(', ')}"`);
+            console.log(`[Viewer] Glass material applied: mesh="${child.name}", mat="${mats.map(m => m.name).join(', ')}"`);
           } else {
             // Opaque mesh — draw before transparent
             child.renderOrder = -2;
@@ -713,6 +720,7 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
       function tick() {
         s.animationId = requestAnimationFrame(tick);
         controls.update();
+        handlePitchSnap(s);
         renderer.render(scene, camera);
       }
       tick();
@@ -792,6 +800,123 @@ function applyMaterialOverridesToModel(model, overrides) {
     }
   });
   console.log(`[Viewer] Material overrides applied to ${count} materials`);
+}
+
+/* ─── Pitch Snap Animation ─── */
+/**
+ * State machine that animates the camera to a top-down view when the user
+ * reaches pitchMax, and animates back to pitchMax when they try to tilt down.
+ *
+ * States:
+ *   idle     → Normal operation; watching for polar angle to reach minPolarAngle
+ *   to_top   → Animating polar angle toward 0 (top-down / pitch 90°)
+ *   at_top   → At top-down view; user can pan/zoom; watching for downward tilt
+ *   to_limit → Animating polar angle back to the original minPolarAngle
+ *   cooldown → Waiting until user moves away from the limit to re-enable snap
+ */
+function handlePitchSnap(s) {
+  const { controls, camera, THREE, pitchSnap: snap, pendingOrbit: orbit } = s;
+  if (!controls || !camera || !THREE) return;
+
+  // Feature is gated behind the orbit setting
+  const enabled = orbit?.pitchSnapEnabled === true;
+
+  // If disabled mid-animation, reset cleanly
+  if (!enabled && snap.state !== 'idle') {
+    if (snap.state === 'to_top' || snap.state === 'to_limit') {
+      controls.enableRotate = true;
+      controls.enablePan = true;
+    }
+    if (snap.originalMinPolar) {
+      controls.minPolarAngle = snap.originalMinPolar;
+    }
+    snap.state = 'idle';
+    return;
+  }
+  if (!enabled) return;
+
+  // Target polar angle from settings (90° → phi 0, 45° → phi π/4, etc.)
+  const snapTargetDeg = orbit?.pitchSnapTarget ?? 90;
+  const HALF_PI = Math.PI / 2;
+  const targetPhi = Math.max(HALF_PI - snapTargetDeg * (Math.PI / 180), 0.001);
+
+  const polar = controls.getPolarAngle();
+
+  switch (snap.state) {
+    case 'idle': {
+      const minPolar = controls.minPolarAngle;
+      // Only activate when there is a meaningful upper-pitch limit (> ~3°)
+      if (minPolar <= 0.05) return;
+      // And only if the snap target is actually above the max
+      if (targetPhi >= minPolar) return;
+      if (polar <= minPolar + 0.03) {
+        snap.state = 'to_top';
+        snap.originalMinPolar = minPolar;
+        controls.minPolarAngle = Math.max(targetPhi - 0.01, 0.001);
+        controls.enableRotate = false;
+        controls.enablePan = false;
+      }
+      break;
+    }
+
+    case 'to_top': {
+      const offset = new THREE.Vector3().subVectors(camera.position, controls.target);
+      const sph = new THREE.Spherical().setFromVector3(offset);
+
+      sph.phi = THREE.MathUtils.lerp(sph.phi, targetPhi, 0.08);
+      sph.makeSafe();
+      offset.setFromSpherical(sph);
+      camera.position.copy(controls.target).add(offset);
+      camera.lookAt(controls.target);
+
+      if (Math.abs(sph.phi - targetPhi) < 0.015) {
+        snap.state = 'at_top';
+        controls.minPolarAngle = Math.max(targetPhi - 0.01, 0.001);
+        controls.enableRotate = true;
+        controls.enablePan = true;
+      }
+      break;
+    }
+
+    case 'at_top': {
+      // User can freely pan / zoom from the snapped view.
+      // If they tilt downward past a small threshold → animate back.
+      if (polar > targetPhi + 0.08) {
+        snap.state = 'to_limit';
+        controls.enableRotate = false;
+        controls.enablePan = false;
+      }
+      break;
+    }
+
+    case 'to_limit': {
+      const returnPhi = snap.originalMinPolar;
+      const offset = new THREE.Vector3().subVectors(camera.position, controls.target);
+      const sph = new THREE.Spherical().setFromVector3(offset);
+
+      sph.phi = THREE.MathUtils.lerp(sph.phi, returnPhi, 0.08);
+      sph.makeSafe();
+      offset.setFromSpherical(sph);
+      camera.position.copy(controls.target).add(offset);
+      camera.lookAt(controls.target);
+
+      if (Math.abs(sph.phi - returnPhi) < 0.015) {
+        snap.state = 'cooldown';
+        controls.minPolarAngle = snap.originalMinPolar;
+        controls.enableRotate = true;
+        controls.enablePan = true;
+      }
+      break;
+    }
+
+    case 'cooldown': {
+      // Don't re-trigger until user moves well past the limit
+      if (polar > snap.originalMinPolar + 0.2) {
+        snap.state = 'idle';
+      }
+      break;
+    }
+  }
 }
 
 /* ─── Dispose helper ─── */
