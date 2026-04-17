@@ -56,6 +56,29 @@ export default function FileUploader({
             {currentFile.size && (
               <span className="file-size">{formatBytes(currentFile.size)}</span>
             )}
+            {currentFile.url && (
+              <button
+                className="btn btn-sm btn-secondary"
+                title="Descargar"
+                onClick={async () => {
+                  try {
+                    const res = await fetch(currentFile.url, { mode: 'cors' });
+                    const blob = await res.blob();
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = currentFile.fileName || 'asset';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(a.href);
+                  } catch (err) {
+                    console.error('Download failed:', err);
+                  }
+                }}
+              >
+                ⬇
+              </button>
+            )}
             <button
               className="btn btn-sm btn-primary"
               onClick={handleClick}

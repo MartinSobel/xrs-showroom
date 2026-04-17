@@ -443,6 +443,17 @@ body {
   border-color: rgba(255, 68, 102, 0.5);
 }
 
+.btn-secondary {
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--text-secondary);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: var(--text-primary);
+}
+
 .btn-sm {
   padding: 5px 10px;
   font-size: 0.7rem;
