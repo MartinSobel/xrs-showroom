@@ -102,6 +102,17 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
         applyMaterialOverridesToModel(s.glbModel, overrides);
       }
     },
+    getRendererInfo: () => {
+      const s = stateRef.current;
+      if (!s.renderer) return null;
+      const gl = s.renderer.getContext();
+      const ext = gl.getExtension('WEBGL_debug_renderer_info');
+      return {
+        memory: { ...s.renderer.info.memory },
+        render: { ...s.renderer.info.render },
+        gpuName: ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : null,
+      };
+    },
   }));
 
   /* ─── Orbit Controls Application ─── */

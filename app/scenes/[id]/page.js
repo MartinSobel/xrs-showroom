@@ -278,7 +278,7 @@ export default function ScenePage() {
       <Viewer3D ref={viewerRef} onReady={handleViewerReady} />
 
       {/* Performance Panel (bottom-right) */}
-      <PerformancePanel scene={scene} loadMetrics={loadMetrics} />
+      <PerformancePanel scene={scene} loadMetrics={loadMetrics} viewerRef={viewerRef} />
 
       {/* Left Panel — Unidades List */}
       <UnidadesListPanel

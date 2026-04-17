@@ -33,13 +33,25 @@ function formatBytes(bytes) {
 }
 
 /**
- * PerformancePanel — floating panel at bottom-left showing:
+ * Format large numbers with k/M suffixes.
+ */
+function formatCount(n) {
+  if (!n) return '0';
+  if (n < 1000) return String(n);
+  if (n < 1_000_000) return `${(n / 1000).toFixed(1)}k`;
+  return `${(n / 1_000_000).toFixed(1)}M`;
+}
+
+/**
+ * PerformancePanel — floating panel at bottom-right showing:
  * - Live FPS
+ * - GPU / VRAM info (geometries, textures, draw calls, triangles)
  * - Actual load time (measured)
  * - Estimated load times for Fast 4G & Slow 4G (based on total asset sizes)
  */
-export default function PerformancePanel({ scene, loadMetrics }) {
+export default function PerformancePanel({ scene, loadMetrics, viewerRef }) {
   const [fps, setFps] = useState(0);
+  const [gpuInfo, setGpuInfo] = useState(null);
   const frameCountRef = useRef(0);
   const lastTimeRef = useRef(0);
 
@@ -67,6 +79,17 @@ export default function PerformancePanel({ scene, loadMetrics }) {
     return () => cancelAnimationFrame(animId);
   }, []);
 
+  // Poll renderer info every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (viewerRef?.current?.getRendererInfo) {
+        const info = viewerRef.current.getRendererInfo();
+        if (info) setGpuInfo(info);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [viewerRef]);
+
   // Calculate total asset size from scene data
   const assets = scene?.assets || {};
   const assetEntries = [];
@@ -83,7 +106,6 @@ export default function PerformancePanel({ scene, loadMetrics }) {
   const actualTime = loadMetrics?.totalTime ?? null;
 
   // Estimate download times for each profile
-  // Each asset gets one latency hit (simulating initial connection), then bandwidth-limited transfer
   const assetCount = assetEntries.length || 1;
 
   const estimates = {};
@@ -115,6 +137,40 @@ export default function PerformancePanel({ scene, loadMetrics }) {
             {fps || '--'}
           </span>
           <span className="perf-fps-label">FPS</span>
+        </div>
+
+        <div className="section-divider" />
+
+        {/* ─── GPU / VRAM ─── */}
+        <div className="perf-section">
+          <div className="perf-section-title">🖥️ GPU / VRAM</div>
+          {gpuInfo ? (
+            <>
+              {gpuInfo.gpuName && (
+                <div className="perf-gpu-name">{gpuInfo.gpuName}</div>
+              )}
+              <div className="perf-gpu-grid">
+                <div className="perf-gpu-stat">
+                  <span className="perf-gpu-stat-value">{gpuInfo.memory.geometries}</span>
+                  <span className="perf-gpu-stat-label">Geometries</span>
+                </div>
+                <div className="perf-gpu-stat">
+                  <span className="perf-gpu-stat-value">{gpuInfo.memory.textures}</span>
+                  <span className="perf-gpu-stat-label">Textures</span>
+                </div>
+                <div className="perf-gpu-stat">
+                  <span className="perf-gpu-stat-value">{gpuInfo.render.calls}</span>
+                  <span className="perf-gpu-stat-label">Draw calls</span>
+                </div>
+                <div className="perf-gpu-stat">
+                  <span className="perf-gpu-stat-value">{formatCount(gpuInfo.render.triangles)}</span>
+                  <span className="perf-gpu-stat-label">Triangles</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="perf-empty">Esperando renderer…</div>
+          )}
         </div>
 
         <div className="section-divider" />
