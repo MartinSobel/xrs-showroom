@@ -30,6 +30,7 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
     animationId: null,
     sparkRenderer: null,
     glbModel: null,
+    collidersModel: null,
     splatMesh: null,
     skyboxMesh: null,
     floorMesh: null,
@@ -41,7 +42,7 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
     optimizer: null,
     clock: null,
     // Store transforms so they can be applied after models load
-    pendingTransforms: { glb: null, sog: null, skybox: null, floor: null },
+    pendingTransforms: { glb: null, colliders: null, sog: null, skybox: null, floor: null },
     // Store material overrides so they can be applied after GLB loads
     pendingMaterialOverrides: null,
     // Store the GLB model bounding-box center for orbit target
@@ -52,6 +53,8 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
     pitchSnap: { state: 'idle', originalMinPolar: 0 },
     // Click zoom animation state machine
     clickZoom: { state: 'idle', originalFov: 45 },
+    // Camera Focus animation state (spherical coords)
+    focusTarget: { state: 'idle', targetPhi: 0, targetTheta: 0, targetRadius: 0, onComplete: null },
   });
 
   // Expose methods to parent via ref
@@ -71,14 +74,24 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
       }
     },
     loadGlb: (url) => loadGlbModel(url),
+    loadColliders: (url) => loadCollidersModel(url),
     loadSog: (url) => loadSogModel(url),
     loadSkyboxTexture: (url) => loadSkyboxTexture(url),
     loadFloorTexture: (url) => loadFloorTexture(url),
     removeGlb: () => removeGlb(),
+    removeColliders: () => removeColliders(),
     removeSog: () => removeSog(),
     removeSkyboxTexture: () => removeSkyboxTex(),
     removeFloorTexture: () => removeFloorTex(),
     getGlbModel: () => stateRef.current.glbModel,
+    getCollidersModel: () => stateRef.current.collidersModel,
+    focusOnCollider: (name, onComplete) => focusCameraOnCollider(name, onComplete),
+    setCollidersVisible: (visible) => {
+      const s = stateRef.current;
+      if (s.collidersModel) {
+        s.collidersModel.visible = visible;
+      }
+    },
     applyMaterialOverrides: (overrides) => {
       const s = stateRef.current;
       if (!overrides) return;
@@ -161,6 +174,20 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
       }
       const rot = transforms.rotation || {};
       s.glbModel.rotation.set(
+        (rot.x ?? 0) * DEG2RAD,
+        (rot.y ?? 0) * DEG2RAD,
+        (rot.z ?? 0) * DEG2RAD
+      );
+    }
+
+    if (type === 'colliders' && s.collidersModel) {
+      const pos = transforms.position || {};
+      s.collidersModel.position.set(pos.x ?? 0, pos.y ?? 0, pos.z ?? 0);
+      if (typeof transforms.scale === 'number') {
+        s.collidersModel.scale.setScalar(transforms.scale);
+      }
+      const rot = transforms.rotation || {};
+      s.collidersModel.rotation.set(
         (rot.x ?? 0) * DEG2RAD,
         (rot.y ?? 0) * DEG2RAD,
         (rot.z ?? 0) * DEG2RAD
@@ -375,6 +402,61 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
     }
   }, []);
 
+  /* ─── Colliders Loading ─── */
+  const loadCollidersModel = useCallback(async (url) => {
+    const s = stateRef.current;
+    const THREE = s.THREE;
+    if (!THREE || !url) return;
+
+    removeColliders();
+
+    try {
+      const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
+      const { DRACOLoader } = await import('three/examples/jsm/loaders/DRACOLoader.js');
+
+      const gltfLoader = new GLTFLoader();
+      const dracoLoader = new DRACOLoader();
+      dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
+      dracoLoader.setDecoderConfig({ type: 'wasm' });
+      gltfLoader.setDRACOLoader(dracoLoader);
+
+      console.log('[Viewer] Loading Colliders:', url);
+
+      const res = await fetch(url, { mode: 'cors' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const buffer = await res.arrayBuffer();
+
+      const gltf = await new Promise((resolve, reject) => {
+        gltfLoader.parse(buffer, '', resolve, reject);
+      });
+
+      const model = gltf.scene;
+      
+      console.log('[Viewer] Nombres de Collider Meshes:');
+      model.traverse((child) => {
+        if (child.isMesh) {
+          console.log(` - Mesh name: "${child.name}"`);
+          child.castShadow = false;
+          child.receiveShadow = false;
+          child.frustumCulled = false;
+        }
+      });
+
+      s.scene.add(model);
+      s.collidersModel = model;
+
+      // Apply pending transforms if they exist
+      if (s.pendingTransforms.colliders) {
+        applyTransformToObject('colliders', s.pendingTransforms.colliders);
+      }
+
+      console.log('[Viewer] ✓ Colliders loaded');
+      dracoLoader.dispose();
+    } catch (err) {
+      console.error('[Viewer] Colliders load failed:', err);
+    }
+  }, []);
+
   /* ─── SOG Loading ─── */
   const loadSogModel = useCallback(async (url) => {
     const s = stateRef.current;
@@ -552,6 +634,15 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
     }
   }, []);
 
+  const removeColliders = useCallback(() => {
+    const s = stateRef.current;
+    if (s.collidersModel) {
+      s.scene.remove(s.collidersModel);
+      disposeObject(s.collidersModel);
+      s.collidersModel = null;
+    }
+  }, []);
+
   const removeSog = useCallback(() => {
     const s = stateRef.current;
     if (s.splatMesh) {
@@ -585,6 +676,80 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
       s.floorMesh.material.needsUpdate = true;
     }
     s.floorRawTexture = null;
+  }, []);
+
+  /* ─── Focus Camera on Collider ─── */
+  const focusCameraOnCollider = useCallback((name, onComplete) => {
+    const s = stateRef.current;
+    const THREE = s.THREE;
+    if (!THREE || !s.collidersModel || !s.camera || !s.controls) return;
+
+    const sanitizedName = name.replace(/-/g, '').toLowerCase();
+
+    let targetMesh = null;
+    s.collidersModel.traverse((child) => {
+      if (child.isMesh) {
+        const meshName = (child.name || '').replace(/-/g, '').toLowerCase();
+        if (meshName === sanitizedName) {
+          targetMesh = child;
+        }
+      }
+    });
+
+    if (!targetMesh) {
+      console.warn(`[Viewer] Collider mesh "${name}" not found`);
+      return;
+    }
+
+    const box = new THREE.Box3().setFromObject(targetMesh);
+    const colliderCenter = new THREE.Vector3();
+    box.getCenter(colliderCenter);
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+
+    // Orbit target stays on the GLB model center
+    const orbitTarget = s.glbCenter ? s.glbCenter.clone() : s.controls.target.clone();
+
+    // Compute the desired camera position in spherical coordinates relative to orbit target
+    // Direction: from orbit target toward the collider
+    const dir = new THREE.Vector3().subVectors(colliderCenter, orbitTarget);
+    if (dir.lengthSq() < 0.001) {
+      dir.copy(new THREE.Vector3().subVectors(s.camera.position, orbitTarget));
+    }
+
+    const desiredRadius = dir.length() + maxDim * 2.5 + 2.0;
+    const sph = new THREE.Spherical().setFromVector3(dir);
+
+    // Clamp phi (polar / pitch) to orbit limits
+    sph.phi = THREE.MathUtils.clamp(
+      sph.phi,
+      s.controls.minPolarAngle,
+      s.controls.maxPolarAngle
+    );
+
+    // Clamp theta (azimuthal / yaw) to orbit limits
+    if (isFinite(s.controls.minAzimuthAngle) && isFinite(s.controls.maxAzimuthAngle)) {
+      sph.theta = THREE.MathUtils.clamp(
+        sph.theta,
+        s.controls.minAzimuthAngle,
+        s.controls.maxAzimuthAngle
+      );
+    }
+
+    // Clamp radius to orbit zoom limits
+    sph.radius = THREE.MathUtils.clamp(
+      desiredRadius,
+      s.controls.minDistance,
+      s.controls.maxDistance
+    );
+
+    sph.makeSafe();
+
+    s.focusTarget.targetPhi = sph.phi;
+    s.focusTarget.targetTheta = sph.theta;
+    s.focusTarget.targetRadius = sph.radius;
+    s.focusTarget.onComplete = onComplete || null;
+    s.focusTarget.state = 'animating';
   }, []);
 
   /* ─── Fit Camera ─── */
@@ -740,6 +905,7 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
         controls.update();
         handlePitchSnap(s);
         handleClickZoom(s);
+        handleFocusAnimation(s);
         renderer.render(scene, camera);
       }
       tick();
@@ -1010,6 +1176,53 @@ function handleClickZoom(s) {
       camera.fov = cz.originalFov;
       camera.updateProjectionMatrix();
       cz.state = 'idle';
+    }
+  }
+}
+
+/* ─── Focus Camera Animation ─── */
+function handleFocusAnimation(s) {
+  const { camera, controls, focusTarget: focus, THREE } = s;
+  if (!camera || !controls || !focus || !THREE || focus.state === 'idle') return;
+
+  if (focus.state === 'animating') {
+    // focusSpeed: 5 (very slow) → 100 (instant), stored in orbit settings
+    const speed = s.pendingOrbit?.focusSpeed ?? 25;
+    const LERP_SPEED = speed / 1000; // 5→0.005, 25→0.025, 100→0.1
+
+    // Get current camera position in spherical coords relative to orbit target
+    const offset = new THREE.Vector3().subVectors(camera.position, controls.target);
+    const current = new THREE.Spherical().setFromVector3(offset);
+
+    // Lerp each spherical component independently
+    current.phi = THREE.MathUtils.lerp(current.phi, focus.targetPhi, LERP_SPEED);
+    current.theta = THREE.MathUtils.lerp(current.theta, focus.targetTheta, LERP_SPEED);
+    current.radius = THREE.MathUtils.lerp(current.radius, focus.targetRadius, LERP_SPEED);
+    current.makeSafe();
+
+    // Convert back to cartesian and apply
+    offset.setFromSpherical(current);
+    camera.position.copy(controls.target).add(offset);
+    camera.lookAt(controls.target);
+
+    // Check convergence
+    const dPhi = Math.abs(current.phi - focus.targetPhi);
+    const dTheta = Math.abs(current.theta - focus.targetTheta);
+    const dRadius = Math.abs(current.radius - focus.targetRadius);
+
+    if (dPhi < 0.002 && dTheta < 0.002 && dRadius < 0.05) {
+      current.phi = focus.targetPhi;
+      current.theta = focus.targetTheta;
+      current.radius = focus.targetRadius;
+      current.makeSafe();
+      offset.setFromSpherical(current);
+      camera.position.copy(controls.target).add(offset);
+      camera.lookAt(controls.target);
+      focus.state = 'idle';
+      if (typeof focus.onComplete === 'function') {
+        focus.onComplete();
+        focus.onComplete = null;
+      }
     }
   }
 }

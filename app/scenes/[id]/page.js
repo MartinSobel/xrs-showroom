@@ -29,6 +29,7 @@ export default function ScenePage() {
   const [viewerReady, setViewerReady] = useState(false);
   const [loadMetrics, setLoadMetrics] = useState(null);
   const [unidadesData, setUnidadesData] = useState([]);
+  const [modalUnit, setModalUnit] = useState(null);
 
   // Track load timing
   const loadTimingRef = useRef({ startTime: null, pending: 0, done: false });
@@ -36,6 +37,7 @@ export default function ScenePage() {
   // Track which assets have been loaded to avoid re-loading
   const loadedAssetsRef = useRef({
     glb: null,
+    colliders: null,
     sog: null,
     skybox: null,
     floor: null,
@@ -76,6 +78,13 @@ export default function ScenePage() {
       loaded.glb = glbUrl;
       if (glbUrl) toLoad.push(() => v.loadGlb(glbUrl));
       else v.removeGlb();
+    }
+
+    const collidersUrl = assets.colliders?.url || null;
+    if (collidersUrl !== loaded.colliders) {
+      loaded.colliders = collidersUrl;
+      if (collidersUrl) toLoad.push(() => v.loadColliders(collidersUrl));
+      else v.removeColliders();
     }
 
     const sogUrl = assets.sog?.url || null;
@@ -131,6 +140,7 @@ export default function ScenePage() {
     const v = viewerRef.current;
     const t = scene.transforms;
     if (t.glb) v.applyTransform('glb', t.glb);
+    if (t.colliders) v.applyTransform('colliders', t.colliders);
     if (t.sog) v.applyTransform('sog', t.sog);
     if (t.skybox) v.applyTransform('skybox', t.skybox);
     if (t.floor) v.applyTransform('floor', t.floor);
@@ -217,6 +227,18 @@ export default function ScenePage() {
     [removeAsset]
   );
 
+  // Handle unit selection — trigger camera animation, open modal when done
+  const handleSelectUnit = useCallback((unit) => {
+    if (viewerRef.current && unit?.id) {
+      viewerRef.current.focusOnCollider(String(unit.id), () => {
+        setModalUnit(unit);
+      });
+    } else {
+      // No collider model loaded — open modal immediately
+      setModalUnit(unit);
+    }
+  }, []);
+
   if (loading) {
     return (
       <div className="loading-overlay">
@@ -250,7 +272,13 @@ export default function ScenePage() {
       <PerformancePanel scene={scene} loadMetrics={loadMetrics} />
 
       {/* Left Panel — Unidades List */}
-      <UnidadesListPanel unidades={unidadesData} position="panel-left" />
+      <UnidadesListPanel
+        unidades={unidadesData}
+        position="panel-left"
+        onSelectUnit={handleSelectUnit}
+        selectedUnit={modalUnit}
+        onCloseModal={() => setModalUnit(null)}
+      />
 
       {/* Right Panel Stack — Accordion: only one open at a time */}
       <RightPanelStack>
@@ -263,6 +291,9 @@ export default function ScenePage() {
               onRemove={handleRemove}
               onTransformChange={handleTransformChange}
               onApplyTransform={handleApplyTransform}
+              onCollidersVisibilityChange={(visible) => {
+                if (viewerRef.current) viewerRef.current.setCollidersVisible(visible);
+              }}
               collapsed={activePanel !== 'assets'}
               onToggle={() => toggle('assets')}
             />

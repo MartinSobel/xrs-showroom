@@ -538,6 +538,29 @@ body {
   margin-bottom: 6px;
 }
 
+/* Colliders visibility toggle */
+.colliders-visibility-row {
+  margin-top: 8px;
+  padding: 6px 0;
+}
+
+.colliders-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.colliders-toggle-label input[type="checkbox"] {
+  accent-color: var(--accent-blue);
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
 /* ═══════════════════════════════════════
    FILE UPLOADER
    ═══════════════════════════════════════ */

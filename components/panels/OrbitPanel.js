@@ -45,6 +45,7 @@ export const DEFAULT_ORBIT = {
   pitchSnapTarget: 90,
   clickZoomEnabled: false,
   clickZoomAmount: 30,
+  focusSpeed: 25,
 };
 
 /**
@@ -135,6 +136,23 @@ export default function OrbitPanel({ scene, onOrbitChange, onApplyOrbit, collaps
             help="Porcentaje de acercamiento — cuánto se acerca la cámara al punto de enfoque (30% = sutil, 80% = muy cercano)"
           />
         )}
+      </div>
+
+      <div className="section-divider" />
+
+      {/* ─── Focus Animation Speed ─── */}
+      <div className="transform-section">
+        <div className="transform-section-title">🎬 Animación de Foco</div>
+        <ControlRow
+          label="Vel"
+          labelClass="label-s"
+          value={local.focusSpeed ?? 25}
+          min={5}
+          max={100}
+          step={5}
+          onChange={(v) => updateField('focusSpeed', v)}
+          help="Velocidad de la animación de cámara al seleccionar una unidad (5 = muy lenta, 100 = instantánea)"
+        />
       </div>
 
       <div className="section-divider" />

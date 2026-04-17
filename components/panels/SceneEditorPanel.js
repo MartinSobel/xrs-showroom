@@ -60,6 +60,7 @@ export default function SceneEditorPanel({
   onRemove,
   onTransformChange,
   onApplyTransform,
+  onCollidersVisibilityChange,
   collapsed,
   onToggle,
 }) {
@@ -139,6 +140,48 @@ export default function SceneEditorPanel({
             <TransformRow label="Rx" labelClass="label-x" value={local.glb?.rotation?.x ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('glb', 'rotation.x', v)} help="Rotación en el eje X (inclinación)" />
             <TransformRow label="Ry" labelClass="label-y" value={local.glb?.rotation?.y ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('glb', 'rotation.y', v)} help="Rotación en el eje Y (giro horizontal)" />
             <TransformRow label="Rz" labelClass="label-z" value={local.glb?.rotation?.z ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('glb', 'rotation.z', v)} help="Rotación en el eje Z (alabeo)" />
+          </div>
+        )}
+      </AssetAccordion>
+
+      {/* ─── Colliders ─── */}
+      <AssetAccordion
+        title="Colliders"
+        icon="🧱"
+        open={openSection === 'colliders'}
+        onToggle={() => toggleSection('colliders')}
+      >
+        <FileUploader
+          label="Archivo"
+          icon=""
+          accept=".glb,.gltf"
+          currentFile={scene.assets?.colliders}
+          uploadProgress={uploadProgress?.colliders}
+          onUpload={(file) => onUpload('colliders', file)}
+          onRemove={() => onRemove('colliders')}
+        />
+        {scene.assets?.colliders && (
+          <div className="colliders-visibility-row">
+            <label className="colliders-toggle-label">
+              <input
+                type="checkbox"
+                defaultChecked={true}
+                onChange={(e) => onCollidersVisibilityChange?.(e.target.checked)}
+              />
+              Mostrar en escena
+            </label>
+          </div>
+        )}
+        {local && (
+          <div className="asset-transform-section">
+            <div className="asset-transform-title">Transform</div>
+            <TransformRow label="X" labelClass="label-x" value={local.colliders?.position?.x ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('colliders', 'position.x', v)} help="Posición en el eje horizontal (izquierda/derecha)" />
+            <TransformRow label="Y" labelClass="label-y" value={local.colliders?.position?.y ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('colliders', 'position.y', v)} help="Posición en el eje vertical (arriba/abajo)" />
+            <TransformRow label="Z" labelClass="label-z" value={local.colliders?.position?.z ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('colliders', 'position.z', v)} help="Posición en el eje de profundidad (adelante/atrás)" />
+            <TransformRow label="S" labelClass="label-s" value={local.colliders?.scale ?? 1} min={-500} max={500} step={1} onChange={(v) => updateField('colliders', 'scale', v)} help="Escala uniforme de los colliders" />
+            <TransformRow label="Rx" labelClass="label-x" value={local.colliders?.rotation?.x ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('colliders', 'rotation.x', v)} help="Rotación en el eje X (inclinación)" />
+            <TransformRow label="Ry" labelClass="label-y" value={local.colliders?.rotation?.y ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('colliders', 'rotation.y', v)} help="Rotación en el eje Y (giro horizontal)" />
+            <TransformRow label="Rz" labelClass="label-z" value={local.colliders?.rotation?.z ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('colliders', 'rotation.z', v)} help="Rotación en el eje Z (alabeo)" />
           </div>
         )}
       </AssetAccordion>

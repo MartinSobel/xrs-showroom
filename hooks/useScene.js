@@ -105,7 +105,7 @@ export function useScene(sceneId) {
 
   /**
    * Upload an asset file.
-   * @param {'glb'|'sog'|'skybox'|'floor'} assetType
+   * @param {'glb'|'sog'|'skybox'|'floor'|'colliders'} assetType
    * @param {File} file
    */
   const uploadAsset = useCallback(

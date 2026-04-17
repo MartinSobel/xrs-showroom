@@ -8,9 +8,8 @@ import UnidadModal from './UnidadModal';
  * UnidadesListPanel — left-side panel with filters + unit list.
  * Filters: Ambientes (circle buttons), Metraje (range slider).
  */
-export default function UnidadesListPanel({ unidades = [], position = 'panel-left' }) {
+export default function UnidadesListPanel({ unidades = [], position = 'panel-left', onSelectUnit, selectedUnit, onCloseModal }) {
   const items = Array.isArray(unidades) ? unidades : [];
-  const [selectedUnit, setSelectedUnit] = useState(null);
 
   // Filter state
   const [selectedAmb, setSelectedAmb] = useState(null); // null = all
@@ -169,7 +168,9 @@ export default function UnidadesListPanel({ unidades = [], position = 'panel-lef
                   <div
                     key={unit.id || index}
                     className="unidad-card"
-                    onClick={() => setSelectedUnit(unit)}
+                    onClick={() => {
+                      if (onSelectUnit) onSelectUnit(unit);
+                    }}
                   >
                     <div className="unidad-thumb">
                       {unit.file ? (
@@ -201,7 +202,7 @@ export default function UnidadesListPanel({ unidades = [], position = 'panel-lef
 
       {/* Unit detail modal */}
       {selectedUnit && (
-        <UnidadModal unit={selectedUnit} onClose={() => setSelectedUnit(null)} />
+        <UnidadModal unit={selectedUnit} onClose={onCloseModal} />
       )}
     </>
   );
