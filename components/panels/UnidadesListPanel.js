@@ -14,7 +14,8 @@ export default function UnidadesListPanel({ unidades = [], position = 'panel-lef
   // Filter state
   const [selectedAmb, setSelectedAmb] = useState(null); // null = all
   const [metrajeRange, setMetrajeRange] = useState([0, 300]);
-  const [showFilters, setShowFilters] = useState(true);
+  const [showAmbientes, setShowAmbientes] = useState(false);
+  const [showMetraje, setShowMetraje] = useState(false);
 
   // Compute min/max metraje from data
   const metrajeMinMax = useMemo(() => {
@@ -85,12 +86,12 @@ export default function UnidadesListPanel({ unidades = [], position = 'panel-lef
               <div className="unidad-filter-section">
                 <div
                   className="unidad-filter-header"
-                  onClick={() => setShowFilters(!showFilters)}
+                  onClick={() => setShowAmbientes(!showAmbientes)}
                 >
                   <span>Ambientes</span>
-                  <span className={`unidad-filter-chevron ${showFilters ? '' : 'collapsed'}`}>▴</span>
+                  <span className={`unidad-filter-chevron ${showAmbientes ? 'open' : ''}`}>▾</span>
                 </div>
-                {showFilters && (
+                {showAmbientes && (
                   <div className="unidad-filter-pills">
                     {[1, 2, 3, 4].map((n) => (
                       <button
@@ -112,41 +113,47 @@ export default function UnidadesListPanel({ unidades = [], position = 'panel-lef
               </div>
 
               {/* Metraje */}
-              {showFilters && (
-                <div className="unidad-filter-section">
-                  <div className="unidad-filter-header">
-                    <span>Metraje</span>
-                  </div>
-                  <div className="unidad-range-slider">
-                    <input
-                      type="range"
-                      min={metrajeMinMax[0]}
-                      max={metrajeMinMax[1]}
-                      step={5}
-                      value={metrajeRange[0]}
-                      onChange={(e) => {
-                        const v = Number(e.target.value);
-                        setMetrajeRange([Math.min(v, metrajeRange[1]), metrajeRange[1]]);
-                      }}
-                    />
-                    <input
-                      type="range"
-                      min={metrajeMinMax[0]}
-                      max={metrajeMinMax[1]}
-                      step={5}
-                      value={metrajeRange[1]}
-                      onChange={(e) => {
-                        const v = Number(e.target.value);
-                        setMetrajeRange([metrajeRange[0], Math.max(v, metrajeRange[0])]);
-                      }}
-                    />
-                  </div>
-                  <div className="unidad-range-labels">
-                    <span>{metrajeRange[0]}m²</span>
-                    <span>{metrajeRange[1]}m²</span>
-                  </div>
+              <div className="unidad-filter-section">
+                <div
+                  className="unidad-filter-header"
+                  onClick={() => setShowMetraje(!showMetraje)}
+                >
+                  <span>Metraje</span>
+                  <span className={`unidad-filter-chevron ${showMetraje ? 'open' : ''}`}>▾</span>
                 </div>
-              )}
+                {showMetraje && (
+                  <>
+                    <div className="unidad-range-slider">
+                      <input
+                        type="range"
+                        min={metrajeMinMax[0]}
+                        max={metrajeMinMax[1]}
+                        step={5}
+                        value={metrajeRange[0]}
+                        onChange={(e) => {
+                          const v = Number(e.target.value);
+                          setMetrajeRange([Math.min(v, metrajeRange[1]), metrajeRange[1]]);
+                        }}
+                      />
+                      <input
+                        type="range"
+                        min={metrajeMinMax[0]}
+                        max={metrajeMinMax[1]}
+                        step={5}
+                        value={metrajeRange[1]}
+                        onChange={(e) => {
+                          const v = Number(e.target.value);
+                          setMetrajeRange([metrajeRange[0], Math.max(v, metrajeRange[0])]);
+                        }}
+                      />
+                    </div>
+                    <div className="unidad-range-labels">
+                      <span>{metrajeRange[0]}m²</span>
+                      <span>{metrajeRange[1]}m²</span>
+                    </div>
+                  </>
+                )}
+              </div>
 
               {/* Clear */}
               {hasActiveFilters && (
@@ -160,7 +167,7 @@ export default function UnidadesListPanel({ unidades = [], position = 'panel-lef
             <div className="unidades-list">
               <div className="unidades-list-header">
                 <span className="unidades-list-count">
-                  {filtered.length} de {items.length} unidades
+                  Mostrando {filtered.length} resultados
                 </span>
               </div>
               <div className="unidades-list-items">
