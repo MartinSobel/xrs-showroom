@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { subscribeScene, updateTransforms as dbUpdateTransforms, updateOrbit as dbUpdateOrbit, updateMaterials as dbUpdateMaterials, updateUnidades as dbUpdateUnidades, updateSceneAsset, removeSceneAsset } from '@/lib/scenes';
+import { subscribeScene, updateTransforms as dbUpdateTransforms, updateOrbit as dbUpdateOrbit, updateMaterials as dbUpdateMaterials, updateUnidades as dbUpdateUnidades, updateCollidersVisible as dbUpdateCollidersVisible, updateSceneAsset, removeSceneAsset } from '@/lib/scenes';
 import { uploadAsset as storageUpload, deleteAsset as storageDelete } from '@/lib/storage';
 
 export function useScene(sceneId) {
@@ -104,6 +104,17 @@ export function useScene(sceneId) {
   );
 
   /**
+   * Update colliders visibility flag (persists to DB immediately).
+   */
+  const updateCollidersVisible = useCallback(
+    (visible) => {
+      if (!sceneId) return;
+      dbUpdateCollidersVisible(sceneId, visible).catch(console.error);
+    },
+    [sceneId]
+  );
+
+  /**
    * Upload an asset file.
    * @param {'glb'|'sog'|'skybox'|'floor'|'colliders'} assetType
    * @param {File} file
@@ -182,6 +193,7 @@ export function useScene(sceneId) {
     updateOrbit,
     updateMaterials,
     updateUnidades,
+    updateCollidersVisible,
     uploadAsset,
     removeAsset,
   };

@@ -52,6 +52,7 @@ export default function ScenePage() {
     updateOrbit,
     updateMaterials,
     updateUnidades,
+    updateCollidersVisible,
     uploadAsset,
     removeAsset,
   } = useScene(sceneId);
@@ -83,8 +84,16 @@ export default function ScenePage() {
     const collidersUrl = assets.colliders?.url || null;
     if (collidersUrl !== loaded.colliders) {
       loaded.colliders = collidersUrl;
-      if (collidersUrl) toLoad.push(() => v.loadColliders(collidersUrl));
-      else v.removeColliders();
+      if (collidersUrl) {
+        toLoad.push(async () => {
+          await v.loadColliders(collidersUrl);
+          // Apply persisted visibility after colliders load
+          const vis = scene.collidersVisible;
+          if (vis === false) {
+            v.setCollidersVisible(false);
+          }
+        });
+      } else v.removeColliders();
     }
 
     const sogUrl = assets.sog?.url || null;
@@ -293,7 +302,9 @@ export default function ScenePage() {
               onApplyTransform={handleApplyTransform}
               onCollidersVisibilityChange={(visible) => {
                 if (viewerRef.current) viewerRef.current.setCollidersVisible(visible);
+                updateCollidersVisible(visible);
               }}
+              collidersVisible={scene?.collidersVisible}
               collapsed={activePanel !== 'assets'}
               onToggle={() => toggle('assets')}
             />

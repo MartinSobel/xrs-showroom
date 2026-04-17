@@ -61,6 +61,7 @@ export default function SceneEditorPanel({
   onTransformChange,
   onApplyTransform,
   onCollidersVisibilityChange,
+  collidersVisible,
   collapsed,
   onToggle,
 }) {
@@ -165,7 +166,7 @@ export default function SceneEditorPanel({
             <label className="colliders-toggle-label">
               <input
                 type="checkbox"
-                defaultChecked={true}
+                checked={collidersVisible !== false}
                 onChange={(e) => onCollidersVisibilityChange?.(e.target.checked)}
               />
               Mostrar en escena
