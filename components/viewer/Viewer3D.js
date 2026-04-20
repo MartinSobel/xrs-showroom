@@ -596,10 +596,11 @@ if (uMaskEnabled > 0.5) {
 
     // Helper to apply scale — supports both uniform (number) and per-axis (object)
     const applyScale = (obj, scale) => {
+      const clamp = (v) => Math.max(0.01, v ?? 1);
       if (typeof scale === 'object' && scale !== null) {
-        obj.scale.set(scale.x ?? 1, scale.y ?? 1, scale.z ?? 1);
+        obj.scale.set(clamp(scale.x), clamp(scale.y), clamp(scale.z));
       } else if (typeof scale === 'number') {
-        obj.scale.setScalar(scale);
+        obj.scale.setScalar(clamp(scale));
       }
     };
 
