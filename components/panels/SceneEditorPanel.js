@@ -360,12 +360,12 @@ export default function SceneEditorPanel({
   const [openSection, setOpenSection] = useState(null);
 
   const toggleSection = useCallback((sectionId) => {
-    setOpenSection((prev) => {
-      const next = prev === sectionId ? null : sectionId;
-      onActiveSectionChange?.(next);
-      return next;
-    });
-  }, [onActiveSectionChange]);
+    setOpenSection((prev) => prev === sectionId ? null : sectionId);
+  }, []);
+
+  useEffect(() => {
+    onActiveSectionChange?.(openSection);
+  }, [openSection, onActiveSectionChange]);
 
   // Local transform state for responsive UI
   const transforms = scene?.transforms;
