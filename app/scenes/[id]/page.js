@@ -18,6 +18,7 @@ import OrbitPanel from '@/components/panels/OrbitPanel';
 import UnidadesPanel from '@/components/panels/UnidadesPanel';
 import PresetsPanel from '@/components/panels/PresetsPanel';
 import LeftPanelStack from '@/components/panels/LeftPanelStack';
+import RightPanelStack from '@/components/panels/RightPanelStack';
 import CameraSelector from '@/components/ui/CameraSelector';
 
 // Dynamic import for client-only 3D components (no SSR)
@@ -523,27 +524,39 @@ export default function ScenePage() {
       {/* Orbit center crosshair */}
       <div className="orbit-crosshair" />
 
-      {/* Top-right controls */}
-      <div className="viewer-top-right">
-        <CameraSelector ref={cameraSelectorRef} onSelectView={handleCameraView} onDragRotate={handleCubeDragRotate} />
-      </div>
-
-      {/* Bottom-right: camera info + compact performance */}
+      {/* Bottom-right: ViewCube + camera info + compact performance */}
       <div className="bottom-right-bar">
         <PerformancePanel
           scene={scene}
           loadMetrics={loadMetrics}
           viewerRef={viewerRef}
         />
-        <div className="camera-info-panel">
-          <span className="camera-info-item"><span className="camera-info-label">Zoom</span>{cameraInfo.zoom}</span>
-          <span className="camera-info-item"><span className="camera-info-label">Pitch</span>{cameraInfo.pitch}°</span>
-          <span className="camera-info-item"><span className="camera-info-label">Yaw</span>{cameraInfo.yaw}°</span>
+        <div className="bottom-right-stack">
+          <CameraSelector ref={cameraSelectorRef} onSelectView={handleCameraView} onDragRotate={handleCubeDragRotate} />
+          <div className="camera-info-panel">
+            <span className="camera-info-item"><span className="camera-info-label">Zoom</span>{cameraInfo.zoom}</span>
+            <span className="camera-info-item"><span className="camera-info-label">Pitch</span>{cameraInfo.pitch}°</span>
+            <span className="camera-info-item"><span className="camera-info-label">Yaw</span>{cameraInfo.yaw}°</span>
+          </div>
         </div>
       </div>
 
-      {/* Single Left Sidebar */}
-      <LeftPanelStack
+      {/* Left Sidebar — Units listing only */}
+      <LeftPanelStack>
+        {({ activePanel, toggle }) => (
+          <UnidadesListPanel
+            unidades={unidadesData}
+            onSelectUnit={handleSelectUnit}
+            selectedUnit={modalUnit}
+            onCloseModal={() => setModalUnit(null)}
+            collapsed={activePanel !== 'unidadesList'}
+            onToggle={() => toggle('unidadesList')}
+          />
+        )}
+      </LeftPanelStack>
+
+      {/* Right Sidebar — Scene settings & adjustments */}
+      <RightPanelStack
         sceneName={scene.name}
         sceneId={sceneId}
       >
@@ -603,18 +616,9 @@ export default function ScenePage() {
               collapsed={activePanel !== 'unidades'}
               onToggle={() => toggle('unidades')}
             />
-
-            <UnidadesListPanel
-              unidades={unidadesData}
-              onSelectUnit={handleSelectUnit}
-              selectedUnit={modalUnit}
-              onCloseModal={() => setModalUnit(null)}
-              collapsed={activePanel !== 'unidadesList'}
-              onToggle={() => toggle('unidadesList')}
-            />
           </>
         )}
-      </LeftPanelStack>
+      </RightPanelStack>
     </>
   );
 }
