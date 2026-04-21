@@ -61,12 +61,13 @@ const FREE_CAMERA = {
   yawMax: 180,
 };
 
-export default function OrbitPanel({ scene, onOrbitChange, onApplyOrbit, collapsed, onToggle }) {
+export default function OrbitPanel({ scene, onOrbitChange, onApplyOrbit, collapsed, onToggle, viewerRef }) {
   const orbit = scene?.orbit;
 
   // Local state for responsive UI
   const [local, setLocal] = useState(null);
   const [freeCam, setFreeCam] = useState(false);
+  const [saveFlash, setSaveFlash] = useState(false);
 
   // Sync from Firebase when scene data arrives/changes
   useEffect(() => {
@@ -124,6 +125,56 @@ export default function OrbitPanel({ scene, onOrbitChange, onApplyOrbit, collaps
           />
           <span>Cámara libre (solo editor)</span>
         </label>
+      </div>
+
+      <div className="section-divider" />
+
+      {/* ─── Initial Camera Position ─── */}
+      <div className="transform-section">
+        <div className="transform-section-title">📍 Posición Inicial</div>
+        <div className="initial-camera-row">
+          <button
+            className={`initial-camera-btn${saveFlash ? ' saved' : ''}`}
+            onClick={() => {
+              if (!viewerRef?.current) return;
+              const state = viewerRef.current.getCameraState();
+              if (!state) return;
+              const next = { ...local, initialCamera: state };
+              setLocal(next);
+              onOrbitChange?.(next);
+              onApplyOrbit?.(freeCam ? { ...next, ...FREE_CAMERA } : next);
+              setSaveFlash(true);
+              setTimeout(() => setSaveFlash(false), 1200);
+            }}
+          >
+            {saveFlash ? '✓ Guardado' : 'Capturar posición actual'}
+          </button>
+          {local.initialCamera && (
+            <button
+              className="initial-camera-clear"
+              onClick={() => {
+                const next = { ...local };
+                delete next.initialCamera;
+                setLocal(next);
+                onOrbitChange?.(next);
+                onApplyOrbit?.(freeCam ? { ...next, ...FREE_CAMERA } : next);
+              }}
+              title="Borrar posición inicial"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+        {local.initialCamera && (
+          <div className="initial-camera-info">
+            <span>Zoom: {local.initialCamera.zoom}</span>
+            <span>Pitch: {local.initialCamera.pitch}°</span>
+            <span>Yaw: {local.initialCamera.yaw}°</span>
+          </div>
+        )}
+        <div className="initial-camera-help">
+          Al cargar la escena, la cámara se posiciona automáticamente aquí
+        </div>
       </div>
 
       <div className="section-divider" />

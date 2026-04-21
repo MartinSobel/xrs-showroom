@@ -156,6 +156,13 @@ export default function ScenePage() {
       setLoadProgress(0.8);
       setLoadStatus('Listo');
 
+      // ── Apply initial camera position after GLB is loaded ──
+      if (scene.orbit?.initialCamera) {
+        setTimeout(() => {
+          viewerRef.current?.setInitialCameraPosition(scene.orbit.initialCamera);
+        }, 150);
+      }
+
       // ── Dismiss loading overlay — maqueta is visible ──
       if (hasCritical || !loadingAssets) {
         setLoadProgress(1);
@@ -645,6 +652,7 @@ export default function ScenePage() {
               scene={scene}
               onOrbitChange={handleOrbitChange}
               onApplyOrbit={handleApplyOrbit}
+              viewerRef={viewerRef}
               collapsed={activePanel !== 'orbit'}
               onToggle={() => toggle('orbit')}
             />

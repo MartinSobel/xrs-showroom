@@ -100,6 +100,13 @@ export default function ViewPage() {
       setLoadProgress(1);
       setLoadStatus('Listo');
 
+      // ── Apply initial camera position after GLB is loaded ──
+      if (scene.orbit?.initialCamera) {
+        setTimeout(() => {
+          viewerRef.current?.setInitialCameraPosition(scene.orbit.initialCamera);
+        }, 150);
+      }
+
       // ── Dismiss loading screen — maqueta is visible ──
       setTimeout(() => setLoadingAssets(false), 300);
 

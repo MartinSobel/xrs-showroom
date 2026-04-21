@@ -539,6 +539,35 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
         console.log('[Viewer] ✓ Full GLB loaded (proxy swapped)');
       }
     },
+    getCameraState: () => {
+      const s = stateRef.current;
+      const THREE = s.THREE;
+      if (!THREE || !s.camera || !s.controls) return null;
+      const offset = new THREE.Vector3().subVectors(s.camera.position, s.controls.target);
+      const sph = new THREE.Spherical().setFromVector3(offset);
+      return {
+        pitch: Math.round((90 - (sph.phi * 180 / Math.PI)) * 10) / 10,
+        yaw: Math.round(-(sph.theta * 180 / Math.PI) * 10) / 10,
+        zoom: Math.round(sph.radius * 100) / 100,
+      };
+    },
+    setInitialCameraPosition: (initialCamera) => {
+      const s = stateRef.current;
+      const THREE = s.THREE;
+      if (!THREE || !s.camera || !s.controls || !initialCamera) return;
+      // Convert pitch/yaw/zoom back to spherical
+      const phi = (90 - initialCamera.pitch) * DEG2RAD;
+      const theta = -initialCamera.yaw * DEG2RAD;
+      const radius = initialCamera.zoom;
+      const sph = new THREE.Spherical(radius, phi, theta);
+      sph.makeSafe();
+      s.focusTarget.targetPhi = sph.phi;
+      s.focusTarget.targetTheta = sph.theta;
+      s.focusTarget.targetRadius = sph.radius;
+      s.focusTarget.onComplete = null;
+      s.focusTarget.lerpOverride = 0.08;
+      s.focusTarget.state = 'animating';
+    },
   }));
 
   /* ─── Orbit Controls Application ─── */
