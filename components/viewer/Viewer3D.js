@@ -226,6 +226,33 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
       s.controls.update();
       s.controls.enableDamping = savedDamping;
     },
+    getAllAssetStats: () => {
+      const s = stateRef.current;
+      const stats = { glb: 0, colliders: 0, sog: 0 };
+      const calcTris = (model) => {
+        if (!model) return 0;
+        let tris = 0;
+        model.traverse((child) => {
+          if (child.isMesh && child.geometry) {
+            const pos = child.geometry.attributes.position;
+            const idx = child.geometry.getIndex();
+            tris += idx ? idx.count / 3 : (pos ? pos.count / 3 : 0);
+          }
+        });
+        return Math.round(tris);
+      };
+      if (s.glbModel) stats.glb = calcTris(s.glbModel);
+      if (s.collidersModel) stats.colliders = calcTris(s.collidersModel);
+      if (s.splatMesh) {
+        if (s.splatMesh.splatCount) stats.sog = s.splatMesh.splatCount * 2;
+        else if (s.splatMesh.geometry?.attributes?.position) {
+          stats.sog = Math.round((s.splatMesh.geometry.attributes.position.count / 4) * 2);
+        } else {
+          stats.sog = calcTris(s.splatMesh);
+        }
+      }
+      return stats;
+    },
     getModelStats: () => {
       const s = stateRef.current;
       if (!s.glbModel) return null;

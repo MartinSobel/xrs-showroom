@@ -49,13 +49,14 @@ function TransformRow({ label, labelClass, value, min, max, step, onChange, help
  * A single collapsible asset section (inner accordion).
  * Optionally shows a visibility eye toggle in the header.
  */
-function AssetAccordion({ title, icon, open, onToggle, children, visible, onVisibilityToggle, selected }) {
+function AssetAccordion({ title, icon, open, onToggle, children, visible, onVisibilityToggle, selected, tris }) {
   return (
     <div className={`asset-accordion ${open ? 'open' : ''} ${selected ? 'selected' : ''}`}>
       <div className="asset-accordion-header">
         <span className="asset-accordion-title" onClick={onToggle}>
           <span className="asset-accordion-icon">{icon}</span>
           {title}
+          {tris > 0 && <span className="asset-tris-badge">{(tris / 1000).toFixed(0)}K tris</span>}
         </span>
         <span className="asset-accordion-actions">
           {onVisibilityToggle && (
@@ -254,6 +255,21 @@ export default function SceneEditorPanel({
   const [preOpts, setPreOpts] = useState({ resizeTextures: false, maxTextureSize: 2048, forcePOT: false, stripGeometry: false });
   const [preProgress, setPreProgress] = useState(0);
   const [preWorking, setPreWorking] = useState(false);
+
+  // General asset stats state
+  const [assetStats, setAssetStats] = useState({ glb: 0, colliders: 0, sog: 0 });
+
+  useEffect(() => {
+    if (!viewerReady || !viewerRef?.current) return;
+    const updateStats = () => {
+      if (viewerRef.current.getAllAssetStats) {
+        setAssetStats(viewerRef.current.getAllAssetStats());
+      }
+    };
+    updateStats();
+    const timer = setInterval(updateStats, 2000);
+    return () => clearInterval(timer);
+  }, [viewerReady, viewerRef, scene?.assets]);
 
   const handleGlbFile = useCallback(async (file) => {
     if (!viewerRef?.current) { onUpload('glb', file); return; }
@@ -455,6 +471,7 @@ export default function SceneEditorPanel({
         visible={visibility?.glb !== false}
         onVisibilityToggle={scene.assets?.glb ? (v) => onVisibilityChange?.('glb', v) : undefined}
         selected={openSection === 'glb'}
+        tris={assetStats.glb}
       >
         <FileUploader
           label="Archivo"
@@ -586,6 +603,7 @@ export default function SceneEditorPanel({
         visible={visibility?.colliders !== false}
         onVisibilityToggle={scene.assets?.colliders ? (v) => onVisibilityChange?.('colliders', v) : undefined}
         selected={openSection === 'colliders'}
+        tris={assetStats.colliders}
       >
         <FileUploader
           label="Archivo"
@@ -623,6 +641,7 @@ export default function SceneEditorPanel({
         visible={visibility?.sog !== false}
         onVisibilityToggle={scene.assets?.sog ? (v) => onVisibilityChange?.('sog', v) : undefined}
         selected={openSection === 'sog'}
+        tris={assetStats.sog}
       >
         <FileUploader
           label="Archivo"

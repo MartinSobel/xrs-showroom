@@ -45,6 +45,7 @@ export default function PerformancePanel({ scene, loadMetrics, viewerRef }) {
   const [fps, setFps] = useState(0);
   const [gpuInfo, setGpuInfo] = useState(null);
   const [instancingStats, setInstancingStats] = useState(null);
+  const [assetTris, setAssetTris] = useState(null);
   const [expanded, setExpanded] = useState(false);
   const frameCountRef = useRef(0);
   const lastTimeRef = useRef(0);
@@ -81,6 +82,10 @@ export default function PerformancePanel({ scene, loadMetrics, viewerRef }) {
       if (viewerRef?.current?.getInstancingStats) {
         const stats = viewerRef.current.getInstancingStats();
         if (stats) setInstancingStats(stats);
+      }
+      if (viewerRef?.current?.getAllAssetStats) {
+        const at = viewerRef.current.getAllAssetStats();
+        if (at) setAssetTris(at);
       }
     }, 1000);
     return () => clearInterval(interval);
@@ -155,6 +160,29 @@ export default function PerformancePanel({ scene, loadMetrics, viewerRef }) {
                 <span>{gpuInfo.render.calls} calls</span>
                 <span>{formatCount(gpuInfo.render.triangles)} tris</span>
               </div>
+              {/* Per-asset tris breakdown */}
+              {assetTris && (assetTris.glb > 0 || assetTris.colliders > 0 || assetTris.sog > 0) && (
+                <div className="perf-tris-breakdown">
+                  {assetTris.glb > 0 && (
+                    <div className="perf-asset-row-compact">
+                      <span>🧊 Maqueta</span>
+                      <span>{formatCount(assetTris.glb)} tris</span>
+                    </div>
+                  )}
+                  {assetTris.colliders > 0 && (
+                    <div className="perf-asset-row-compact">
+                      <span>🧱 Colliders</span>
+                      <span>{formatCount(assetTris.colliders)} tris</span>
+                    </div>
+                  )}
+                  {assetTris.sog > 0 && (
+                    <div className="perf-asset-row-compact">
+                      <span>✨ Splat</span>
+                      <span>{formatCount(assetTris.sog)} tris</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
