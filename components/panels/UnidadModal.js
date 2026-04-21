@@ -1,13 +1,22 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+
 /**
  * UnidadModal — fullscreen modal showing unit details.
  * Left: info table + action buttons. Right: large floor plan image.
  */
 export default function UnidadModal({ unit, onClose }) {
-  if (!unit) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!unit || !mounted) return null;
+
+  return createPortal(
     <div className="unidad-modal-overlay" onClick={onClose}>
       <div className="unidad-modal" onClick={(e) => e.stopPropagation()}>
         {/* Close button */}
@@ -69,6 +78,7 @@ export default function UnidadModal({ unit, onClose }) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

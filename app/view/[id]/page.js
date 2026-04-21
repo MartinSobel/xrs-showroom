@@ -15,6 +15,9 @@ import { useParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { useScene } from '@/hooks/useScene';
 
+import LeftPanelStack from '@/components/panels/LeftPanelStack';
+import UnidadesListPanel from '@/components/panels/UnidadesListPanel';
+
 const Viewer3D = dynamic(() => import('@/components/viewer/Viewer3D'), { ssr: false });
 const FpsCounter = dynamic(() => import('@/components/viewer/FpsCounter'), { ssr: false });
 
@@ -26,6 +29,8 @@ export default function ViewPage() {
   const [loadingAssets, setLoadingAssets] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const [loadStatus, setLoadStatus] = useState('Iniciando…');
+  const [unidadesData, setUnidadesData] = useState([]);
+  const [modalUnit, setModalUnit] = useState(null);
 
   const loadedAssetsRef = useRef({
     glb: null,
@@ -171,6 +176,42 @@ export default function ViewPage() {
     viewerRef.current.applyMaterialOverrides(scene.materials);
   }, [viewerReady, scene?.materials]);
 
+  // Fetch units data if apiUrl is present
+  useEffect(() => {
+    const url = scene?.unidades?.apiUrl;
+    if (!url) return;
+
+    let isMounted = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/proxy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url }),
+        });
+        const result = await res.json();
+        if ((!res.ok || result.error) && isMounted) {
+          console.error('[View] API fetch error:', result.error);
+          return;
+        }
+        if (isMounted) setUnidadesData(result.data || []);
+      } catch (err) {
+        if (isMounted) console.error('[View] API fetch failed:', err);
+      }
+    })();
+    return () => { isMounted = false; };
+  }, [scene?.unidades?.apiUrl]);
+
+  const handleSelectUnit = useCallback((unit) => {
+    if (viewerRef.current && unit?.id) {
+      viewerRef.current.focusOnCollider(String(unit.id), () => {
+        setModalUnit(unit);
+      });
+    } else {
+      setModalUnit(unit);
+    }
+  }, []);
+
   if (loading) {
     return (
       <div className="loading-overlay">
@@ -200,6 +241,20 @@ export default function ViewPage() {
   return (
     <>
       <Viewer3D ref={viewerRef} onReady={handleViewerReady} />
+
+      {/* Left Sidebar — Units listing only */}
+      <LeftPanelStack>
+        {({ activePanel, toggle }) => (
+          <UnidadesListPanel
+            unidades={unidadesData}
+            onSelectUnit={handleSelectUnit}
+            selectedUnit={modalUnit}
+            onCloseModal={() => setModalUnit(null)}
+            collapsed={activePanel !== 'unidadesList'}
+            onToggle={() => toggle('unidadesList')}
+          />
+        )}
+      </LeftPanelStack>
 
       {/* Loading overlay while assets load */}
       {loadingAssets && (

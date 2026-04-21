@@ -1,0 +1,121 @@
+[debug] [2026-04-21T15:30:01.552Z] ----------------------------------------------------------------------
+[debug] [2026-04-21T15:30:01.554Z] Command:       /Users/martin/.nvm/versions/node/v20.18.3/bin/node /Users/martin/.nvm/versions/node/v18.20.6/bin/firebase deploy
+[debug] [2026-04-21T15:30:01.554Z] CLI Version:   13.35.1
+[debug] [2026-04-21T15:30:01.554Z] Platform:      darwin
+[debug] [2026-04-21T15:30:01.554Z] Node Version:  v20.18.3
+[debug] [2026-04-21T15:30:01.554Z] Time:          Tue Apr 21 2026 12:30:01 GMT-0300 (Argentina Standard Time)
+[debug] [2026-04-21T15:30:01.554Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-04-21T15:30:01.556Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-04-21T15:30:01.694Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-21T15:30:01.694Z] > authorizing via signed-in user (martin@novaworks.com.ar)
+[debug] [2026-04-21T15:30:01.694Z] [iam] checking project xrs-showroom for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2026-04-21T15:30:01.694Z] Checked if tokens are valid: false, expires at: 1776462767180
+[debug] [2026-04-21T15:30:01.695Z] Checked if tokens are valid: false, expires at: 1776462767180
+[debug] [2026-04-21T15:30:01.695Z] > refreshing access token with scopes: []
+[debug] [2026-04-21T15:30:01.695Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-04-21T15:30:01.695Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-04-21T15:30:01.936Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-04-21T15:30:01.936Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-04-21T15:30:01.951Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/xrs-showroom:testIamPermissions [none]
+[debug] [2026-04-21T15:30:01.951Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/xrs-showroom:testIamPermissions x-goog-quota-user=projects/xrs-showroom
+[debug] [2026-04-21T15:30:01.951Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/xrs-showroom:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-04-21T15:30:02.117Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2026-04-21T15:30:02.117Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2026-04-21T15:30:02.819Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/xrs-showroom:testIamPermissions 200
+[debug] [2026-04-21T15:30:02.819Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/xrs-showroom:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-04-21T15:30:02.820Z] Checked if tokens are valid: true, expires at: 1776789000936
+[debug] [2026-04-21T15:30:02.820Z] Checked if tokens are valid: true, expires at: 1776789000936
+[debug] [2026-04-21T15:30:02.820Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/xrs-showroom [none]
+[debug] [2026-04-21T15:30:06.340Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/xrs-showroom 200
+[debug] [2026-04-21T15:30:06.340Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/xrs-showroom {"projectId":"xrs-showroom","projectNumber":"331289251162","displayName":"xrs-showroom","name":"projects/xrs-showroom","resources":{"hostingSite":"xrs-showroom","realtimeDatabaseInstance":"xrs-showroom-default-rtdb"},"state":"ACTIVE","etag":"1_61ce12ea-b41d-467b-a69b-5fecc05eb72b"}
+[debug] [2026-04-21T15:30:07.381Z] Checked if tokens are valid: true, expires at: 1776789000936
+[debug] [2026-04-21T15:30:07.382Z] Checked if tokens are valid: true, expires at: 1776789000936
+[debug] [2026-04-21T15:30:07.382Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/xrs-showroom/sites pageToken=&pageSize=10
+[debug] [2026-04-21T15:30:08.804Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/xrs-showroom/sites 200
+[debug] [2026-04-21T15:30:08.804Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/xrs-showroom/sites {"sites":[{"name":"projects/xrs-showroom/sites/xrs-showroom","defaultUrl":"https://xrs-showroom.web.app","appId":"1:331289251162:web:7460cc7e35bb4fa926b763","type":"DEFAULT_SITE"}]}
+[debug] [2026-04-21T15:30:08.804Z] Checked if tokens are valid: true, expires at: 1776789000936
+[debug] [2026-04-21T15:30:08.804Z] Checked if tokens are valid: true, expires at: 1776789000936
+[debug] [2026-04-21T15:30:08.804Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:331289251162:web:7460cc7e35bb4fa926b763/config [none]
+[debug] [2026-04-21T15:30:09.758Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:331289251162:web:7460cc7e35bb4fa926b763/config 200
+[debug] [2026-04-21T15:30:09.758Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:331289251162:web:7460cc7e35bb4fa926b763/config {"projectId":"xrs-showroom","appId":"1:331289251162:web:7460cc7e35bb4fa926b763","databaseURL":"https://xrs-showroom-default-rtdb.firebaseio.com","storageBucket":"xrs-showroom.firebasestorage.app","apiKey":"AIzaSyAWMCMfsdWMLxmq5-BTWR0q-haQO65lxH8","authDomain":"xrs-showroom.firebaseapp.com","messagingSenderId":"331289251162","projectNumber":"331289251162","version":"2"}
+[info] 
+   Thank you for trying our early preview of Next.js support on Firebase Hosting.
+   During the preview, support is best-effort and breaking changes can be expected. Proceed with caution.
+   The integration is known to work with Next.js version 12 - 15.0. You may encounter errors.
+
+   Documentation: https://firebase.google.com/docs/hosting/frameworks/nextjs
+   File a bug: https://github.com/firebase/firebase-tools/issues/new?template=bug_report.md
+   Submit a feature request: https://github.com/firebase/firebase-tools/issues/new?template=feature_request.md
+
+   We'd love to learn from you. Express your interest in helping us shape the future of Firebase Hosting: https://goo.gle/41enW5X
+
+[debug] [2026-04-21T15:30:11.462Z] Checked if tokens are valid: true, expires at: 1776789000936
+[debug] [2026-04-21T15:30:11.462Z] Checked if tokens are valid: true, expires at: 1776789000936
+[debug] [2026-04-21T15:30:11.462Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/xrs-showroom/sites/xrs-showroom [none]
+[debug] [2026-04-21T15:30:11.971Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/xrs-showroom/sites/xrs-showroom 200
+[debug] [2026-04-21T15:30:11.972Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/xrs-showroom/sites/xrs-showroom {"name":"projects/xrs-showroom/sites/xrs-showroom","defaultUrl":"https://xrs-showroom.web.app","appId":"1:331289251162:web:7460cc7e35bb4fa926b763","type":"DEFAULT_SITE"}
+[info] ▲ Next.js 16.2.3 (Turbopack)
+
+[info] - Environments: .env.local
+
+
+[info] ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+
+[info]   Creating an optimized production build ...
+
+[info] ✓ Compiled successfully in 2.7s
+
+[info]   Running TypeScript ...
+
+[info]   Finished TypeScript in 83ms ...
+
+[info]   Collecting page data using 7 workers ...
+
+[info]   Generating static pages using 7 workers (0/5) ...
+
+[info]   Generating static pages using 7 workers (1/5) 
+
+[info]   Generating static pages using 7 workers (2/5) 
+
+[info]   Generating static pages using 7 workers (3/5) 
+
+[info] ✓ Generating static pages using 7 workers (5/5) in 115ms
+
+[info]   Finalizing page optimization ...
+
+[info] 
+
+[info] Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/map2tex
+├ ƒ /api/proxy
+├ ƒ /scenes/[id]
+└ ƒ /view/[id]
+
+
+ƒ Proxy (Middleware)
+
+
+[info] ○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+[info] Building a Cloud Function to run this application. This is needed due to:
+[info]  • middleware
+[info]  • non-static component /api/map2tex/route
+[info]  • non-static component /api/proxy/route
+[info]  • non-static component /scenes/[id]/page
+[info]  • non-static component /view/[id]/page
+[info] 
+[debug] [2026-04-21T15:30:17.058Z] skipping / due to it matching an unsupported rewrite/redirect/header or middlware
+[debug] [2026-04-21T15:30:17.058Z] skipping /_global-error due to it matching an unsupported rewrite/redirect/header or middlware
+[debug] [2026-04-21T15:30:17.058Z] skipping /_not-found due to it matching an unsupported rewrite/redirect/header or middlware
+[debug] [2026-04-21T15:30:17.058Z] skipping /404 due to it matching an unsupported rewrite/redirect/header or middlware
+[debug] [2026-04-21T15:30:17.058Z] skipping /500 due to it matching an unsupported rewrite/redirect/header or middlware
+[debug] [2026-04-21T15:30:23.589Z] Checked if tokens are valid: true, expires at: 1776789000936
+[debug] [2026-04-21T15:30:23.589Z] Checked if tokens are valid: true, expires at: 1776789000936
+[debug] [2026-04-21T15:30:23.590Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/xrs-showroom/sites/xrs-showroom [none]
+[debug] [2026-04-21T15:30:24.805Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/xrs-showroom/sites/xrs-showroom 200
+[debug] [2026-04-21T15:30:24.805Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/xrs-showroom/sites/xrs-showroom {"name":"projects/xrs-showroom/sites/xrs-showroom","defaultUrl":"https://xrs-showroom.web.app","appId":"1:331289251162:web:7460cc7e35bb4fa926b763","type":"DEFAULT_SITE"}
