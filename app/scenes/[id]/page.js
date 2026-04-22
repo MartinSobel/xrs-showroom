@@ -34,6 +34,7 @@ export default function ScenePage() {
   const viewerRef = useRef(null);
   const [viewerReady, setViewerReady] = useState(false);
   const [loadingAssets, setLoadingAssets] = useState(true);
+  const [dismissing, setDismissing] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
   const [loadStatus, setLoadStatus] = useState('Iniciando…');
   const [loadMetrics, setLoadMetrics] = useState(null);
@@ -169,10 +170,14 @@ export default function ScenePage() {
       // ── Dismiss loading overlay — maqueta is visible ──
       if (hasCritical || !loadingAssets) {
         setLoadProgress(1);
-        setTimeout(() => setLoadingAssets(false), 300);
+        setTimeout(() => {
+          setDismissing(true);
+          setTimeout(() => setLoadingAssets(false), 900);
+        }, 300);
       } else {
         // No critical assets to load — dismiss immediately
-        setLoadingAssets(false);
+        setDismissing(true);
+        setTimeout(() => setLoadingAssets(false), 900);
       }
 
       // ── Phase 2: Secondary assets — load in background ──
@@ -559,9 +564,11 @@ export default function ScenePage() {
       {/* Fullscreen 3D Viewer */}
       <Viewer3D ref={viewerRef} onReady={handleViewerReady} />
 
-      {/* Loading overlay while critical assets (GLB + floor) load */}
+      {/* Split loading screen while critical assets load */}
       {loadingAssets && (
-        <div className="loading-overlay" style={{ transition: 'opacity 0.6s ease' }}>
+        <div className={`loading-split${dismissing ? ' dismissing' : ''}`}>
+          <div className="loading-split-half loading-split-top" />
+          <div className="loading-split-half loading-split-bottom" />
           <div className="loader-content">
             <div className="loader-spinner" />
             <div className="loader-title">{scene.name}</div>

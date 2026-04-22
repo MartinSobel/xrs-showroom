@@ -28,6 +28,7 @@ export default function ViewPage() {
   const viewerRef = useRef(null);
   const [viewerReady, setViewerReady] = useState(false);
   const [loadingAssets, setLoadingAssets] = useState(true);
+  const [dismissing, setDismissing] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
   const [loadStatus, setLoadStatus] = useState('Iniciando…');
 
@@ -112,7 +113,11 @@ export default function ViewPage() {
       }
 
       // ── Dismiss loading screen — maqueta is visible ──
-      setTimeout(() => setLoadingAssets(false), 300);
+      setTimeout(() => {
+        setDismissing(true);
+        // Remove overlay after animation completes (800ms CSS transition)
+        setTimeout(() => setLoadingAssets(false), 900);
+      }, 300);
 
       // ── Phase 2: Secondary assets (colliders, skybox, SOG) — load in background ──
       const bgPromises = [];
@@ -262,13 +267,14 @@ export default function ViewPage() {
         )}
       </LeftPanelStack>
 
-      {/* Loading overlay while assets load */}
+      {/* Split loading screen */}
       {loadingAssets && (
-        <div className="loading-overlay" style={{ transition: 'opacity 0.6s ease' }}>
+        <div className={`loading-split${dismissing ? ' dismissing' : ''}`}>
+          <div className="loading-split-half loading-split-top" />
+          <div className="loading-split-half loading-split-bottom" />
           <div className="loader-content">
             <div className="loader-spinner" />
             <div className="loader-title">{scene.name}</div>
-            {/* Progress bar */}
             <div className="loader-progress-bar">
               <div
                 className="loader-progress-fill"

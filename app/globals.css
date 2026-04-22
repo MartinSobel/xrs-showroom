@@ -3269,27 +3269,62 @@ body {
 }
 
 /* ═══════════════════════════════════════
-   LOADING OVERLAY
+   LOADING OVERLAY — SPLIT SCREEN
    ═══════════════════════════════════════ */
-.loading-overlay {
+.loading-split {
   position: fixed;
   inset: 0;
   z-index: 500;
+  pointer-events: all;
+}
+
+.loading-split-half {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 50%;
   background: var(--bg-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: opacity 0.4s ease;
+  transition: transform 0.8s cubic-bezier(0.76, 0, 0.24, 1);
+  will-change: transform;
 }
 
-.loading-overlay.hidden {
-  opacity: 0;
-  pointer-events: none;
+.loading-split-top {
+  top: 0;
+  height: calc(50% + 1px);
+  transform: translateY(0);
 }
 
-.loader-content {
+.loading-split-bottom {
+  bottom: 0;
+  transform: translateY(0);
+}
+
+/* Dismiss animation — slide halves away */
+.loading-split.dismissing .loading-split-top {
+  transform: translateY(-100%);
+}
+
+.loading-split.dismissing .loading-split-bottom {
+  transform: translateY(100%);
+}
+
+/* Loader content — centered at the junction of both halves */
+.loading-split .loader-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
   text-align: center;
   max-width: 360px;
+  width: 100%;
+  padding: 0 24px;
+  transition: opacity 0.4s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.loading-split.dismissing .loader-content {
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .loader-spinner {
@@ -3318,6 +3353,22 @@ body {
   font-size: 0.78rem;
   color: var(--text-secondary);
   margin-bottom: 14px;
+}
+
+/* Legacy single overlay (for initial data loading state) */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-overlay .loader-content {
+  text-align: center;
+  max-width: 360px;
 }
 
 .progress-bar-container {
