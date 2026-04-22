@@ -1,130 +1,130 @@
-# Changelog
+# Registro de cambios
 
-All notable changes to XRS Showroom are documented in this file.
+Todos los cambios importantes de XRS Showroom se documentan en este archivo.
 
-Format: [Semantic Versioning](https://semver.org/) · Dates in YYYY-MM-DD.
+Formato: [Versionado Semántico](https://semver.org/lang/es/) · Fechas en AAAA-MM-DD.
 
 ---
 
 ## [0.8.0] — 2026-04-22
 
-### ✨ Features
-- Split-screen exit animation replacing the loading overlay in viewer and scene pages
-- Background loading and initialization for scene colliders
-- Delayed entrance animation for LeftPanelStack with smooth accordion transitions
-- Nomada-inspired styling and layout overrides for the left panel stack
-- SubAccordion component and reorganized gizmo controls in SceneEditorPanel
-- Amenities management system with dedicated list panel, modal, and Firebase database integration
-- UnidadesCargaModal for bulk CSV unit import and management
-- Initial camera position capture and auto-apply on scene load
-- Skybox position controls with dynamic zoom-based parallax scaling
+### ✨ Funcionalidades
+- Animación de salida tipo split-screen reemplazando el overlay de carga en las páginas de visor y escena
+- Carga e inicialización de colliders de escena en segundo plano
+- Animación de entrada diferida para LeftPanelStack con transiciones suaves de acordeón
+- Estilos y layout inspirados en Nomada para el panel lateral izquierdo
+- Componente SubAccordion y reorganización de controles gizmo en SceneEditorPanel
+- Sistema de gestión de amenities con panel de listado, modal y base de datos Firebase
+- UnidadesCargaModal para importación masiva de unidades por CSV
+- Captura de posición inicial de cámara con auto-aplicación al cargar la escena
+- Controles de posición de skybox con escalado parallax dinámico basado en zoom
 
 ---
 
 ## [0.7.0] — 2026-04-21
 
-### ✨ Features
-- Real-time triangle count tracking and display for 3D assets in Performance and Scene Editor panels
-- Render UnidadModal using React portal for proper DOM mounting
-- Unidades panel integrated into viewer (view) mode
+### ✨ Funcionalidades
+- Seguimiento y visualización en tiempo real del conteo de triángulos para assets 3D en paneles de Rendimiento y Editor de Escena
+- Renderizado de UnidadModal mediante React portal para montaje correcto en el DOM
+- Panel de Unidades integrado en el modo visor (view)
 
-### 🐛 Fixes
+### 🐛 Correcciones
 - N/A
 
 ---
 
 ## [0.6.0] — 2026-04-20
 
-### ✨ Features
-- Prioritized asset loading: GLB and floor load first, secondary assets defer to background
-- Right panel stack for scene settings with toggle functionality
-- Progressive GLB loading with real-time download progress tracking
-- Remove min/max limits on transform number inputs for full flexibility
-- Merge `improvements-test` branch into main
+### ✨ Funcionalidades
+- Carga priorizada de assets: GLB y piso se cargan primero, assets secundarios se difieren al segundo plano
+- Panel lateral derecho para configuración de escena con funcionalidad de toggle
+- Carga progresiva de GLB con seguimiento de progreso de descarga en tiempo real
+- Eliminación de límites mín/máx en inputs numéricos de transformación para mayor flexibilidad
+- Merge de la rama `improvements-test` a main
 
-### 🐛 Fixes
-- Clamp scale values to prevent zero-scale crash on Gaussian Splats
-- Move `onActiveSectionChange` out of setState updater to avoid render-cycle errors
-- Expand scalar scale to `{x,y,z}` object before setting per-axis values
+### 🐛 Correcciones
+- Limitación de valores de escala para prevenir crash por escala cero en Gaussian Splats
+- Mover `onActiveSectionChange` fuera del updater de setState para evitar errores de ciclo de renderizado
+- Expandir escala escalar a objeto `{x,y,z}` antes de asignar valores por eje
 
 ---
 
 ## [0.5.0] — 2026-04-19
 
-### ✨ Features
-- Scene Editor enhancements: transform panel, camera info display, skybox controls, spherical mask, gizmo toolbar, and presets system
-- Satellite floor generator with map-based positioning
-- Floor rotation controls
-- UI restructuring for editor and viewer parity
+### ✨ Funcionalidades
+- Mejoras en el Editor de Escena: panel de transformación, visualización de info de cámara, controles de skybox, máscara esférica, barra de gizmos y sistema de presets
+- Generador de piso satelital con posicionamiento basado en mapa
+- Controles de rotación de piso
+- Reestructuración de UI para paridad entre editor y visor
 
 ---
 
 ## [0.4.0] — 2026-04-17
 
-### ✨ Features
-- Collider model loading, management, and camera-focus-on-unit functionality
-- Collider visibility state persistence in scene editor
-- Redesigned UnidadesListPanel with collapsible filter sections
-- GPU and VRAM metrics display in PerformancePanel
-- Adaptive quality profiles based on device/GPU capabilities
-- Mobile-specific asset loading, VRAM optimizations, and WebGL context loss recovery
-- Download button in FileUploader with secondary button styles
-- Multi-select filtering for room counts in UnidadesListPanel
+### ✨ Funcionalidades
+- Carga y gestión de modelos collider con funcionalidad de enfoque de cámara en unidad
+- Persistencia del estado de visibilidad de colliders en el editor de escena
+- Rediseño de UnidadesListPanel con secciones de filtro colapsables
+- Visualización de métricas de GPU y VRAM en PerformancePanel
+- Perfiles de calidad adaptativa basados en capacidades del dispositivo/GPU
+- Carga de assets específica para móviles, optimizaciones de VRAM y recuperación por pérdida de contexto WebGL
+- Botón de descarga en FileUploader con estilos de botón secundario
+- Filtrado multi-selección por cantidad de ambientes en UnidadesListPanel
 
-### 🔧 Refactors
-- Glass material rendering updated to opacity-based reflections; environment maps enabled for iOS
+### 🔧 Refactorizaciones
+- Renderizado de material de vidrio actualizado a reflexiones basadas en opacidad; mapas de entorno habilitados para iOS
 
 ---
 
 ## [0.3.0] — 2026-04-16
 
-### ✨ Features
-- GLB bounding-box center tracking and persistent orbit state
-- Pitch snap animation state machine with OrbitPanel configuration controls
-- Press-and-hold camera zoom functionality with adjustable intensity
-- Unit filtering, listing, and detail modal components with proxy API support
+### ✨ Funcionalidades
+- Seguimiento del centro de bounding-box del GLB y estado de órbita persistente
+- Máquina de estados de animación pitch-snap con controles de configuración en OrbitPanel
+- Zoom de cámara al mantener presionado con intensidad ajustable
+- Componentes de filtrado, listado y modal de detalle de unidades con soporte de API proxy
 
-### 🔧 Refactors
-- MaterialPanel integrated into RightPanelStack; PerformancePanel relocated to bottom-right
+### 🔧 Refactorizaciones
+- MaterialPanel integrado en RightPanelStack; PerformancePanel reubicado abajo a la derecha
 
-### 💅 Style
-- Layout stability improvements in asset accordion and transform controls
+### 💅 Estilos
+- Mejoras de estabilidad de layout en acordeón de assets y controles de transformación
 
 ---
 
 ## [0.2.0] — 2026-04-15
 
-### ✨ Features
-- Automatic transparency detection and material configuration for glass meshes
-- MaterialPanel for real-time 3D material editing integrated into viewer
-- Persistent material property overrides and PBR environment map generation
+### ✨ Funcionalidades
+- Detección automática de transparencia y configuración de materiales para mallas de vidrio
+- MaterialPanel para edición de materiales 3D en tiempo real integrado al visor
+- Sobreescrituras persistentes de propiedades de material y generación de mapas de entorno PBR
 
-### 🐛 Fixes
-- Correct render order for GLB and splat meshes (compositing fix)
+### 🐛 Correcciones
+- Orden de renderizado correcto para mallas GLB y splat (corrección de composición)
 
-### 📦 Chores
-- Dependency updates in yarn.lock
+### 📦 Mantenimiento
+- Actualización de dependencias en yarn.lock
 
 ---
 
 ## [0.1.0] — 2026-04-14
 
-### ✨ Features
-- Firebase hosting configuration and orbit settings sync in viewer page
-- Collapsible asset transform controls in SceneEditorPanel
-- Pixel ratio control in OrbitPanel with renderer scaling
-- HelpTooltip component with descriptive tooltips in Orbit and SceneEditor panels
-- Upgrade `@sparkjsdev/spark` to 2.0.0 and `three.js` to 0.180.0 with SparkRenderer and LoD support
+### ✨ Funcionalidades
+- Configuración de Firebase hosting y sincronización de ajustes de órbita en la página del visor
+- Controles colapsables de transformación de assets en SceneEditorPanel
+- Control de pixel ratio en OrbitPanel con escalado del renderer
+- Componente HelpTooltip con tooltips descriptivos en paneles de Órbita y Editor de Escena
+- Actualización de `@sparkjsdev/spark` a 2.0.0 y `three.js` a 0.180.0 con SparkRenderer y soporte de LoD
 
 ---
 
 ## [0.0.1] — 2026-04-10
 
-### 🎉 Initial Release
-- First commit — base Next.js + Three.js + Firebase application
-- 3D Viewer (Viewer3D) with GLB, Gaussian Splat (SOG), and skybox loading
-- Scene management with Firestore (create, edit, list scenes)
-- SceneEditorPanel with asset upload and configuration
-- OrbitControls integration with persistent settings
-- PerformancePanel displaying live FPS, asset sizes, and network-simulated load times
-- Inline scene renaming with double-click support
+### 🎉 Lanzamiento inicial
+- Primer commit — aplicación base con Next.js + Three.js + Firebase
+- Visor 3D (Viewer3D) con carga de GLB, Gaussian Splat (SOG) y skybox
+- Gestión de escenas con Firestore (crear, editar, listar escenas)
+- SceneEditorPanel con carga y configuración de assets
+- Integración de OrbitControls con ajustes persistentes
+- PerformancePanel mostrando FPS en vivo, tamaños de assets y tiempos de carga simulados por red
+- Renombrado de escenas inline con soporte de doble clic
