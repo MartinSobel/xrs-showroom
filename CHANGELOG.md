@@ -6,6 +6,21 @@ Format: [Semantic Versioning](https://semver.org/) · Dates in YYYY-MM-DD.
 
 ---
 
+## [0.8.0] — 2026-04-22
+
+### ✨ Features
+- Split-screen exit animation replacing the loading overlay in viewer and scene pages
+- Background loading and initialization for scene colliders
+- Delayed entrance animation for LeftPanelStack with smooth accordion transitions
+- Nomada-inspired styling and layout overrides for the left panel stack
+- SubAccordion component and reorganized gizmo controls in SceneEditorPanel
+- Amenities management system with dedicated list panel, modal, and Firebase database integration
+- UnidadesCargaModal for bulk CSV unit import and management
+- Initial camera position capture and auto-apply on scene load
+- Skybox position controls with dynamic zoom-based parallax scaling
+
+---
+
 ## [0.7.0] — 2026-04-21
 
 ### ✨ Features

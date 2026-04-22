@@ -1,11 +1,18 @@
 {
-  "version": "0.7.0",
-  "buildDate": "2026-04-21",
-  "commitHash": "43c8895",
+  "version": "0.8.0",
+  "buildDate": "2026-04-22",
+  "commitHash": "530762a",
   "environment": "production",
   "features": [
-    "Real-time triangle count tracking for 3D assets",
-    "UnidadModal React portal rendering",
-    "Unidades panel in viewer mode"
+    "replace loading overlay with a split-screen exit animation in viewer and scene pages",
+    "add background loading and initialization for scene colliders",
+    "implement delayed entrance animation for LeftPanelStack and remove redundant header from AmenitiesListPanel",
+    "implement smooth accordion animations and entrance transitions for floating panels",
+    "implement Nomada-inspired styling and layout overrides for the left panel stack",
+    "add SubAccordion component and reorganize gizmo controls in SceneEditorPanel and RightPanelStack",
+    "add amenities management with dedicated list panel, modal, and database integration",
+    "add UnidadesCargaModal for bulk CSV unit management and integrate into existing panels",
+    "add initial camera position capture and auto-apply functionality to viewer and orbit panel",
+    "add skybox position controls and implement dynamic zoom-based parallax scaling"
   ]
 }
