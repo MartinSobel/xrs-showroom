@@ -37,6 +37,7 @@ export default function ViewPage() {
 
   const loadedAssetsRef = useRef({
     glb: null,
+    colliders: null,
     sog: null,
     skybox: null,
     floor: null,
@@ -113,8 +114,17 @@ export default function ViewPage() {
       // ── Dismiss loading screen — maqueta is visible ──
       setTimeout(() => setLoadingAssets(false), 300);
 
-      // ── Phase 2: Secondary assets (skybox, SOG) — load in background ──
+      // ── Phase 2: Secondary assets (colliders, skybox, SOG) — load in background ──
       const bgPromises = [];
+
+      const collidersUrl = assets.colliders?.url || null;
+      if (collidersUrl && collidersUrl !== loaded.colliders) {
+        loaded.colliders = collidersUrl;
+        bgPromises.push(v.loadColliders(collidersUrl).then(() => {
+          // Hide colliders in view mode — they're only used for click targeting
+          v.setCollidersVisible(false);
+        }).catch(() => {}));
+      }
 
       const skyUrl = assets.skybox?.url || null;
       if (skyUrl && skyUrl !== loaded.skybox) {
