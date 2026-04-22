@@ -7,6 +7,10 @@ import UnidadModal from './UnidadModal';
 /**
  * UnidadesListPanel — left-side panel with filters + unit list.
  * Filters: Ambientes (circle buttons), Metraje (range slider).
+ *
+ * Standardized field names:
+ *   id, piso, ambientes, superficie_cubierta, superficie_semicubierta,
+ *   superficie_amenities, superficie_total, imagen_plano
  */
 export default function UnidadesListPanel({ unidades = [], position = '', onSelectUnit, selectedUnit, onCloseModal, collapsed, onToggle }) {
   const items = Array.isArray(unidades) ? unidades : [];
@@ -20,7 +24,7 @@ export default function UnidadesListPanel({ unidades = [], position = '', onSele
   // Compute min/max metraje from data
   const metrajeMinMax = useMemo(() => {
     if (items.length === 0) return [0, 300];
-    const vals = items.map((u) => Number(u.supTotal) || 0).filter((v) => v > 0);
+    const vals = items.map((u) => Number(u.superficie_total) || 0).filter((v) => v > 0);
     if (vals.length === 0) return [0, 300];
     const min = Math.floor(Math.min(...vals) / 10) * 10;
     const max = Math.ceil(Math.max(...vals) / 10) * 10;
@@ -59,7 +63,7 @@ export default function UnidadesListPanel({ unidades = [], position = '', onSele
         if (!matches) return false;
       }
       // Metraje filter
-      const sup = Number(u.supTotal) || 0;
+      const sup = Number(u.superficie_total) || 0;
       if (sup < metrajeRange[0] || sup > metrajeRange[1]) return false;
       return true;
     });
@@ -92,7 +96,7 @@ export default function UnidadesListPanel({ unidades = [], position = '', onSele
         {items.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">📊</div>
-            <p>Sin datos.<br />Configurá el endpoint en el panel Unidades.</p>
+            <p>Sin datos.<br />Cargá unidades desde el panel Unidades en el editor.</p>
           </div>
         ) : (
           <>
@@ -196,18 +200,18 @@ export default function UnidadesListPanel({ unidades = [], position = '', onSele
                     }}
                   >
                     <div className="unidad-thumb">
-                      {unit.file ? (
-                        <img src={unit.file} alt={unit.id || ''} loading="lazy" />
+                      {unit.imagen_plano ? (
+                        <img src={unit.imagen_plano} alt={unit.id || ''} loading="lazy" />
                       ) : (
                         <div className="unidad-thumb-placeholder">🏠</div>
                       )}
                     </div>
                     <div className="unidad-info">
                       <div className="unidad-title">
-                        Piso {unit.floor || '—'} - {unit.id || 'Sin ID'}
+                        Piso {unit.piso || '—'} - {unit.id || 'Sin ID'}
                       </div>
                       <div className="unidad-meta">
-                        {unit.ambientes || '—'} amb · {unit.supTotal || '—'}m² sup. total
+                        {unit.ambientes || '—'} amb · {unit.superficie_total || '—'}m² sup. total
                       </div>
                     </div>
                   </div>

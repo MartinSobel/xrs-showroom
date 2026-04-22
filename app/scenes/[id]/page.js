@@ -36,7 +36,7 @@ export default function ScenePage() {
   const [loadProgress, setLoadProgress] = useState(0);
   const [loadStatus, setLoadStatus] = useState('Iniciando…');
   const [loadMetrics, setLoadMetrics] = useState(null);
-  const [unidadesData, setUnidadesData] = useState([]);
+
   const [modalUnit, setModalUnit] = useState(null);
   const [assetVisibility, setAssetVisibility] = useState({ glb: true, colliders: true, sog: true, skybox: true, floor: true });
   const [gizmoMode, setGizmoMode] = useState('select');
@@ -597,7 +597,7 @@ export default function ScenePage() {
       <LeftPanelStack>
         {({ activePanel, toggle }) => (
           <UnidadesListPanel
-            unidades={unidadesData}
+            unidades={scene?.unidades?.items || []}
             onSelectUnit={handleSelectUnit}
             selectedUnit={modalUnit}
             onCloseModal={() => setModalUnit(null)}
@@ -664,8 +664,8 @@ export default function ScenePage() {
 
             <UnidadesPanel
               scene={scene}
+              sceneId={sceneId}
               onUnidadesChange={updateUnidades}
-              onDataLoaded={setUnidadesData}
               collapsed={activePanel !== 'unidades'}
               onToggle={() => toggle('unidades')}
             />

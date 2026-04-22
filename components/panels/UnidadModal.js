@@ -6,6 +6,10 @@ import { createPortal } from 'react-dom';
 /**
  * UnidadModal — fullscreen modal showing unit details.
  * Left: info table + action buttons. Right: large floor plan image.
+ *
+ * Standardized field names:
+ *   id, piso, ambientes, superficie_cubierta, superficie_semicubierta,
+ *   superficie_amenities, superficie_total, imagen_plano
  */
 export default function UnidadModal({ unit, onClose }) {
   const [mounted, setMounted] = useState(false);
@@ -30,30 +34,30 @@ export default function UnidadModal({ unit, onClose }) {
 
           <div className="unidad-modal-row">
             <span className="unidad-modal-label">Piso</span>
-            <span className="unidad-modal-value">{unit.floor || '—'}</span>
+            <span className="unidad-modal-value">{unit.piso || '—'}</span>
           </div>
 
           <div className="unidad-modal-divider" />
 
           <div className="unidad-modal-row">
-            <span className="unidad-modal-label">Orientación</span>
-            <span className="unidad-modal-value">{unit.banoPrincipal || '—'}</span>
+            <span className="unidad-modal-label">Ambientes</span>
+            <span className="unidad-modal-value">{unit.ambientes || '—'}</span>
           </div>
           <div className="unidad-modal-row">
             <span className="unidad-modal-label">Superficie cubierta</span>
-            <span className="unidad-modal-value">{unit.supCubierta ?? '—'} m²</span>
+            <span className="unidad-modal-value">{unit.superficie_cubierta ?? '—'} m²</span>
           </div>
           <div className="unidad-modal-row">
             <span className="unidad-modal-label">Superficie semicubierta</span>
-            <span className="unidad-modal-value">{unit.supSemiCubierta ?? '—'} m²</span>
+            <span className="unidad-modal-value">{unit.superficie_semicubierta ?? '—'} m²</span>
           </div>
           <div className="unidad-modal-row">
             <span className="unidad-modal-label">Superficie amenities</span>
-            <span className="unidad-modal-value">{unit.supAmenities ?? '—'} m²</span>
+            <span className="unidad-modal-value">{unit.superficie_amenities ?? '—'} m²</span>
           </div>
           <div className="unidad-modal-row unidad-modal-row-total">
             <span className="unidad-modal-label">Superficie total</span>
-            <span className="unidad-modal-value">{unit.supTotal ?? '—'} m²</span>
+            <span className="unidad-modal-value">{unit.superficie_total ?? '—'} m²</span>
           </div>
 
           <div className="unidad-modal-actions">
@@ -68,8 +72,8 @@ export default function UnidadModal({ unit, onClose }) {
 
         {/* Right: Floor plan image */}
         <div className="unidad-modal-plan">
-          {unit.file ? (
-            <img src={unit.file} alt={`Plano ${unit.id}`} />
+          {unit.imagen_plano ? (
+            <img src={unit.imagen_plano} alt={`Plano ${unit.id}`} />
           ) : (
             <div className="unidad-modal-plan-empty">
               <span>🏠</span>

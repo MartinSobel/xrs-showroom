@@ -29,7 +29,8 @@ export default function ViewPage() {
   const [loadingAssets, setLoadingAssets] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const [loadStatus, setLoadStatus] = useState('Iniciando…');
-  const [unidadesData, setUnidadesData] = useState([]);
+
+
   const [modalUnit, setModalUnit] = useState(null);
 
   const loadedAssetsRef = useRef({
@@ -183,31 +184,7 @@ export default function ViewPage() {
     viewerRef.current.applyMaterialOverrides(scene.materials);
   }, [viewerReady, scene?.materials]);
 
-  // Fetch units data if apiUrl is present
-  useEffect(() => {
-    const url = scene?.unidades?.apiUrl;
-    if (!url) return;
 
-    let isMounted = true;
-    (async () => {
-      try {
-        const res = await fetch('/api/proxy', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url }),
-        });
-        const result = await res.json();
-        if ((!res.ok || result.error) && isMounted) {
-          console.error('[View] API fetch error:', result.error);
-          return;
-        }
-        if (isMounted) setUnidadesData(result.data || []);
-      } catch (err) {
-        if (isMounted) console.error('[View] API fetch failed:', err);
-      }
-    })();
-    return () => { isMounted = false; };
-  }, [scene?.unidades?.apiUrl]);
 
   const handleSelectUnit = useCallback((unit) => {
     if (viewerRef.current && unit?.id) {
@@ -253,7 +230,7 @@ export default function ViewPage() {
       <LeftPanelStack>
         {({ activePanel, toggle }) => (
           <UnidadesListPanel
-            unidades={unidadesData}
+            unidades={scene?.unidades?.items || []}
             onSelectUnit={handleSelectUnit}
             selectedUnit={modalUnit}
             onCloseModal={() => setModalUnit(null)}
