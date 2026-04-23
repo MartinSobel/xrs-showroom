@@ -4886,3 +4886,166 @@ body {
 .login-shake {
   animation: loginShake 0.4s ease;
 }
+
+/* ═══════════════════════════════════════
+   MOBILE — LEFT PANEL BOTTOM SHEET
+   ═══════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* ─── Reposition panel to bottom ─── */
+  .left-panel-stack {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 45vh;
+    border-radius: 18px 18px 0 0;
+    transform: translateY(100%);
+    filter: none;
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.35s ease;
+  }
+
+  .left-panel-stack.stack-entered {
+    transform: translateY(0);
+    opacity: 1;
+    filter: none;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.4s ease;
+  }
+
+  .left-panel-stack.stack-hidden {
+    transform: translateY(100%);
+    opacity: 0;
+    filter: none;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s ease;
+  }
+
+  /* ─── Drag handle indicator ─── */
+  .left-panel-stack .sidebar-header {
+    padding: 10px 16px 8px;
+    position: relative;
+  }
+
+  .left-panel-stack .sidebar-header::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    margin: 0 auto 8px;
+  }
+
+  .left-panel-stack .sidebar-header-top {
+    padding: 0;
+  }
+
+  .left-panel-stack .sidebar-scene-label {
+    font-size: 14px;
+    max-width: none;
+  }
+
+  /* ─── Toggle button — bottom-left ─── */
+  .panel-stack-toggle {
+    top: auto;
+    bottom: 16px;
+    left: 16px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    font-size: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  /* ─── Compact panel body ─── */
+  .left-panel-stack .panel-header {
+    padding: 10px 16px;
+  }
+
+  .left-panel-stack .panel-header h3 {
+    font-size: 13px;
+  }
+
+  .left-panel-stack .panel-body {
+    padding: 8px 12px;
+  }
+
+  /* ─── Unit list — full-width vertical cards ─── */
+  .left-panel-stack .unidades-list-items {
+    max-height: 45vh;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+    gap: 8px;
+    padding: 6px 2px 10px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .left-panel-stack .unidades-list-items::-webkit-scrollbar {
+    display: none;
+  }
+
+  .left-panel-stack .unidad-card {
+    flex-shrink: 0;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--lp-border);
+    border-radius: 10px;
+    background: var(--lp-bg-light);
+  }
+
+  .left-panel-stack .unidad-card:hover {
+    border-color: var(--lp-accent);
+  }
+
+  .left-panel-stack .unidad-thumb {
+    width: 52px;
+    height: 52px;
+    border-radius: 6px;
+  }
+
+  .left-panel-stack .unidad-info {
+    gap: 2px;
+    width: 100%;
+  }
+
+  .left-panel-stack .unidad-title {
+    font-size: 13px;
+  }
+
+  .left-panel-stack .unidad-meta {
+    font-size: 11px;
+  }
+
+  /* ─── Filters compact ─── */
+  .left-panel-stack .unidad-filters {
+    padding: 6px 0;
+  }
+
+  .left-panel-stack .unidad-filter-header {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .left-panel-stack .unidad-pill {
+    height: 30px;
+    font-size: 12px;
+  }
+
+  /* ─── List header ─── */
+  .left-panel-stack .unidades-list-header {
+    padding: 6px 4px;
+  }
+
+  .left-panel-stack .unidades-list-count {
+    font-size: 10px;
+  }
+}
