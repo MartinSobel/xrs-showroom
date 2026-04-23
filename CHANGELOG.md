@@ -1,3 +1,23 @@
+## [0.9.0] — 2026-04-23
+
+### ✨ Funcionalidades
+- Animaciones de entrada para GLB: Clipping Plane (revelado de abajo hacia arriba) y Dissolve (shader de ruido)
+- Animaciones de entrada para Splat SOG: morphing punto→splat con Dyno uniforms + máscara de recorte radial
+- Configuración por escena de animaciones (tipo, duración, easing) persistida en Firebase
+- Toggle de fondo HDR al cambiar visibilidad del skybox
+- Controles UI en SceneEditorPanel para todos los ajustes de animación (GLB y Splat)
+- Layout responsive tipo bottom sheet para panel lateral izquierdo en mobile
+- Subida de archivos a Firebase Storage para planos de unidades
+- Integración de WhatsApp con número de contacto configurable por proyecto
+- Autenticación por contraseña con cookies de sesión, página de login y middleware de protección
+
+### 🔧 Refactors
+- Encapsulamiento de secciones de transformación en SubAccordion en SceneEditorPanel
+- Eliminación del overlay de carga bloqueante, renderizado condicional de componentes de escena
+- Panel izquierdo inicia colapsado por defecto
+
+---
+
 # Registro de cambios
 
 Todos los cambios importantes de XRS Showroom se documentan en este archivo.
