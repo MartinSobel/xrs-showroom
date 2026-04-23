@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { storage } from '@/lib/firebase';
+import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 /**
  * Column definitions for the units table.
@@ -15,7 +17,7 @@ const COLUMNS = [
   { key: 'superficie_semicubierta',label: 'Sup. Semi.',      type: 'number', placeholder: 'm²' },
   { key: 'superficie_amenities',   label: 'Sup. Amen.',      type: 'number', placeholder: 'm²' },
   { key: 'superficie_total',       label: 'Sup. Total',      type: 'number', placeholder: 'm²' },
-  { key: 'imagen_plano',           label: 'Imagen Plano',    type: 'text',   placeholder: 'https://...' },
+  { key: 'imagen_plano',           label: 'Imagen Plano',    type: 'file',   placeholder: 'Subir imagen...' },
 ];
 
 /** Create an empty row with all fields */
@@ -154,12 +156,14 @@ function splitCSVRow(line) {
  * @param {Function} onSave      - (items[]) => void — persist to Firebase
  * @param {Function} onClose     - Close the modal
  */
-export default function UnidadesCargaModal({ items = [], onSave, onClose }) {
+export default function UnidadesCargaModal({ items = [], sceneId, onSave, onClose }) {
   const [mounted, setMounted] = useState(false);
   const [rows, setRows] = useState([]);
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [csvStatus, setCsvStatus] = useState(null); // null | { type, msg }
+  const [uploadingCell, setUploadingCell] = useState(null); // { rowIdx, colKey }
+  const [uploadProgress, setUploadProgress] = useState(0);
   const tableRef = useRef(null);
   const fileInputRef = useRef(null);
   const replaceInputRef = useRef(null);
@@ -352,6 +356,46 @@ export default function UnidadesCargaModal({ items = [], onSave, onClose }) {
     }
   }, []);
 
+  // ─── File upload for imagen_plano ───
+  const handleFileUpload = useCallback(async (rowIdx, colKey, file) => {
+    if (!file || !sceneId) return;
+
+    setUploadingCell({ rowIdx, colKey });
+    setUploadProgress(0);
+
+    const path = `scenes/${sceneId}/unidades/${Date.now()}_${file.name}`;
+    const fileRef = storageRef(storage, path);
+    const uploadTask = uploadBytesResumable(fileRef, file);
+
+    uploadTask.on(
+      'state_changed',
+      (snapshot) => {
+        const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+        setUploadProgress(pct);
+      },
+      (error) => {
+        console.error('[Unidad Upload] Error:', error);
+        setUploadingCell(null);
+        setUploadProgress(0);
+      },
+      async () => {
+        try {
+          const url = await getDownloadURL(uploadTask.snapshot.ref);
+          setRows((prev) => {
+            const updated = [...prev];
+            updated[rowIdx] = { ...updated[rowIdx], [colKey]: url };
+            return updated;
+          });
+          setHasChanges(true);
+        } catch (err) {
+          console.error('[Unidad Upload] getDownloadURL error:', err);
+        }
+        setUploadingCell(null);
+        setUploadProgress(0);
+      }
+    );
+  }, [sceneId]);
+
   if (!mounted) return null;
 
   return createPortal(
@@ -447,13 +491,60 @@ export default function UnidadesCargaModal({ items = [], onSave, onClose }) {
                   <td className="ucm-td ucm-td-num">{ri + 1}</td>
                   {COLUMNS.map((col) => (
                     <td key={col.key} className="ucm-td">
-                      <input
-                        type={col.type}
-                        className="ucm-input"
-                        placeholder={col.placeholder}
-                        value={row[col.key] ?? ''}
-                        onChange={(e) => handleCellChange(ri, col.key, e.target.value)}
-                      />
+                      {col.type === 'file' ? (
+                        <div className="amenity-plano-cell">
+                          {row[col.key] ? (
+                            <a
+                              href={row[col.key]}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="amenity-plano-link"
+                              title="Ver imagen"
+                            >
+                              <img
+                                src={row[col.key]}
+                                alt="plano"
+                                className="amenity-plano-thumb-sm"
+                              />
+                            </a>
+                          ) : null}
+                          <label className="amenity-upload-btn-sm">
+                            {uploadingCell?.rowIdx === ri && uploadingCell?.colKey === col.key
+                              ? `${uploadProgress}%`
+                              : row[col.key]
+                                ? '🔄'
+                                : '📁 Subir'}
+                            <input
+                              type="file"
+                              accept="image/*,.pdf"
+                              style={{ display: 'none' }}
+                              disabled={uploadingCell !== null}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleFileUpload(ri, col.key, file);
+                                e.target.value = '';
+                              }}
+                            />
+                          </label>
+                          {row[col.key] && (
+                            <button
+                              className="amenity-clear-plano"
+                              onClick={() => handleCellChange(ri, col.key, '')}
+                              title="Quitar"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <input
+                          type={col.type}
+                          className="ucm-input"
+                          placeholder={col.placeholder}
+                          value={row[col.key] ?? ''}
+                          onChange={(e) => handleCellChange(ri, col.key, e.target.value)}
+                        />
+                      )}
                     </td>
                   ))}
                   <td className="ucm-td ucm-td-actions">

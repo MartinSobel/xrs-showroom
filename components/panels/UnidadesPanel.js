@@ -130,6 +130,7 @@ export default function UnidadesPanel({
       {showUnidadesModal && (
         <UnidadesCargaModal
           items={unidadItems}
+          sceneId={sceneId}
           onSave={handleUnidadesSave}
           onClose={() => setShowUnidadesModal(false)}
         />
