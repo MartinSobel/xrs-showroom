@@ -596,24 +596,23 @@ export default function SceneEditorPanel({
 
         {/* ─── Transform ─── */}
         {local && (
-          <div className="asset-transform-section">
-            <div className="asset-transform-gizmo-row">
-              <div className="asset-transform-title">Transform</div>
+          <SubAccordion title="Transform" icon="📐">
+            <div className="asset-transform-section">
               <GizmoToolbar activeMode={gizmoMode} onModeChange={onGizmoMode} />
+              <div className="asset-transform-title">Posición</div>
+              <TransformRow label="X" labelClass="label-x" value={local.glb?.position?.x ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('glb', 'position.x', v)} />
+              <TransformRow label="Y" labelClass="label-y" value={local.glb?.position?.y ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('glb', 'position.y', v)} />
+              <TransformRow label="Z" labelClass="label-z" value={local.glb?.position?.z ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('glb', 'position.z', v)} />
+              <div className="asset-transform-title">Escala</div>
+              <TransformRow label="Sx" labelClass="label-x" value={local.glb?.scale?.x ?? local.glb?.scale ?? 1} min={0.1} max={2} step={0.001} onChange={(v) => updateField('glb', 'scale.x', v)} />
+              <TransformRow label="Sy" labelClass="label-y" value={local.glb?.scale?.y ?? local.glb?.scale ?? 1} min={0.1} max={2} step={0.001} onChange={(v) => updateField('glb', 'scale.y', v)} />
+              <TransformRow label="Sz" labelClass="label-z" value={local.glb?.scale?.z ?? local.glb?.scale ?? 1} min={0.1} max={2} step={0.001} onChange={(v) => updateField('glb', 'scale.z', v)} />
+              <div className="asset-transform-title">Rotación</div>
+              <TransformRow label="Rx" labelClass="label-x" value={local.glb?.rotation?.x ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('glb', 'rotation.x', v)} />
+              <TransformRow label="Ry" labelClass="label-y" value={local.glb?.rotation?.y ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('glb', 'rotation.y', v)} />
+              <TransformRow label="Rz" labelClass="label-z" value={local.glb?.rotation?.z ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('glb', 'rotation.z', v)} />
             </div>
-            <div className="asset-transform-title">Posición</div>
-            <TransformRow label="X" labelClass="label-x" value={local.glb?.position?.x ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('glb', 'position.x', v)} />
-            <TransformRow label="Y" labelClass="label-y" value={local.glb?.position?.y ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('glb', 'position.y', v)} />
-            <TransformRow label="Z" labelClass="label-z" value={local.glb?.position?.z ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('glb', 'position.z', v)} />
-            <div className="asset-transform-title">Escala</div>
-            <TransformRow label="Sx" labelClass="label-x" value={local.glb?.scale?.x ?? local.glb?.scale ?? 1} min={0.1} max={2} step={0.001} onChange={(v) => updateField('glb', 'scale.x', v)} />
-            <TransformRow label="Sy" labelClass="label-y" value={local.glb?.scale?.y ?? local.glb?.scale ?? 1} min={0.1} max={2} step={0.001} onChange={(v) => updateField('glb', 'scale.y', v)} />
-            <TransformRow label="Sz" labelClass="label-z" value={local.glb?.scale?.z ?? local.glb?.scale ?? 1} min={0.1} max={2} step={0.001} onChange={(v) => updateField('glb', 'scale.z', v)} />
-            <div className="asset-transform-title">Rotación</div>
-            <TransformRow label="Rx" labelClass="label-x" value={local.glb?.rotation?.x ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('glb', 'rotation.x', v)} />
-            <TransformRow label="Ry" labelClass="label-y" value={local.glb?.rotation?.y ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('glb', 'rotation.y', v)} />
-            <TransformRow label="Rz" labelClass="label-z" value={local.glb?.rotation?.z ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('glb', 'rotation.z', v)} />
-          </div>
+          </SubAccordion>
         )}
       </AssetAccordion>
 
@@ -638,24 +637,23 @@ export default function SceneEditorPanel({
           onRemove={() => onRemove('colliders')}
         />
         {local && (
-          <div className="asset-transform-section">
-            <div className="asset-transform-gizmo-row">
-              <div className="asset-transform-title">Transform</div>
+          <SubAccordion title="Transform" icon="📐">
+            <div className="asset-transform-section">
               <GizmoToolbar activeMode={gizmoMode} onModeChange={onGizmoMode} />
+              <div className="asset-transform-title">Posición</div>
+              <TransformRow label="X" labelClass="label-x" value={local.colliders?.position?.x ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('colliders', 'position.x', v)} />
+              <TransformRow label="Y" labelClass="label-y" value={local.colliders?.position?.y ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('colliders', 'position.y', v)} />
+              <TransformRow label="Z" labelClass="label-z" value={local.colliders?.position?.z ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('colliders', 'position.z', v)} />
+              <div className="asset-transform-title">Escala</div>
+              <TransformRow label="Sx" labelClass="label-x" value={local.colliders?.scale?.x ?? local.colliders?.scale ?? 1} min={0.1} max={2} step={0.001} onChange={(v) => updateField('colliders', 'scale.x', v)} />
+              <TransformRow label="Sy" labelClass="label-y" value={local.colliders?.scale?.y ?? local.colliders?.scale ?? 1} min={0.1} max={2} step={0.001} onChange={(v) => updateField('colliders', 'scale.y', v)} />
+              <TransformRow label="Sz" labelClass="label-z" value={local.colliders?.scale?.z ?? local.colliders?.scale ?? 1} min={0.1} max={2} step={0.001} onChange={(v) => updateField('colliders', 'scale.z', v)} />
+              <div className="asset-transform-title">Rotación</div>
+              <TransformRow label="Rx" labelClass="label-x" value={local.colliders?.rotation?.x ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('colliders', 'rotation.x', v)} />
+              <TransformRow label="Ry" labelClass="label-y" value={local.colliders?.rotation?.y ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('colliders', 'rotation.y', v)} />
+              <TransformRow label="Rz" labelClass="label-z" value={local.colliders?.rotation?.z ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('colliders', 'rotation.z', v)} />
             </div>
-            <div className="asset-transform-title">Posición</div>
-            <TransformRow label="X" labelClass="label-x" value={local.colliders?.position?.x ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('colliders', 'position.x', v)} />
-            <TransformRow label="Y" labelClass="label-y" value={local.colliders?.position?.y ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('colliders', 'position.y', v)} />
-            <TransformRow label="Z" labelClass="label-z" value={local.colliders?.position?.z ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('colliders', 'position.z', v)} />
-            <div className="asset-transform-title">Escala</div>
-            <TransformRow label="Sx" labelClass="label-x" value={local.colliders?.scale?.x ?? local.colliders?.scale ?? 1} min={0.1} max={2} step={0.001} onChange={(v) => updateField('colliders', 'scale.x', v)} />
-            <TransformRow label="Sy" labelClass="label-y" value={local.colliders?.scale?.y ?? local.colliders?.scale ?? 1} min={0.1} max={2} step={0.001} onChange={(v) => updateField('colliders', 'scale.y', v)} />
-            <TransformRow label="Sz" labelClass="label-z" value={local.colliders?.scale?.z ?? local.colliders?.scale ?? 1} min={0.1} max={2} step={0.001} onChange={(v) => updateField('colliders', 'scale.z', v)} />
-            <div className="asset-transform-title">Rotación</div>
-            <TransformRow label="Rx" labelClass="label-x" value={local.colliders?.rotation?.x ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('colliders', 'rotation.x', v)} />
-            <TransformRow label="Ry" labelClass="label-y" value={local.colliders?.rotation?.y ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('colliders', 'rotation.y', v)} />
-            <TransformRow label="Rz" labelClass="label-z" value={local.colliders?.rotation?.z ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('colliders', 'rotation.z', v)} />
-          </div>
+          </SubAccordion>
         )}
       </AssetAccordion>
 
@@ -680,24 +678,23 @@ export default function SceneEditorPanel({
           onRemove={() => onRemove('sog')}
         />
         {local && (
-          <div className="asset-transform-section">
-            <div className="asset-transform-gizmo-row">
-              <div className="asset-transform-title">Transform</div>
+          <SubAccordion title="Transform" icon="📐">
+            <div className="asset-transform-section">
               <GizmoToolbar activeMode={gizmoMode} onModeChange={onGizmoMode} />
+              <div className="asset-transform-title">Posición</div>
+              <TransformRow label="X" labelClass="label-x" value={local.sog?.position?.x ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('sog', 'position.x', v)} />
+              <TransformRow label="Y" labelClass="label-y" value={local.sog?.position?.y ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('sog', 'position.y', v)} />
+              <TransformRow label="Z" labelClass="label-z" value={local.sog?.position?.z ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('sog', 'position.z', v)} />
+              <div className="asset-transform-title">Escala</div>
+              <TransformRow label="Sx" labelClass="label-x" value={local.sog?.scale?.x ?? local.sog?.scale ?? 1} min={0.1} max={2} step={0.001} onChange={(v) => updateField('sog', 'scale.x', v)} />
+              <TransformRow label="Sy" labelClass="label-y" value={local.sog?.scale?.y ?? local.sog?.scale ?? 1} min={0.1} max={2} step={0.001} onChange={(v) => updateField('sog', 'scale.y', v)} />
+              <TransformRow label="Sz" labelClass="label-z" value={local.sog?.scale?.z ?? local.sog?.scale ?? 1} min={0.1} max={2} step={0.001} onChange={(v) => updateField('sog', 'scale.z', v)} />
+              <div className="asset-transform-title">Rotación</div>
+              <TransformRow label="Rx" labelClass="label-x" value={local.sog?.rotation?.x ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('sog', 'rotation.x', v)} />
+              <TransformRow label="Ry" labelClass="label-y" value={local.sog?.rotation?.y ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('sog', 'rotation.y', v)} />
+              <TransformRow label="Rz" labelClass="label-z" value={local.sog?.rotation?.z ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('sog', 'rotation.z', v)} />
             </div>
-            <div className="asset-transform-title">Posición</div>
-            <TransformRow label="X" labelClass="label-x" value={local.sog?.position?.x ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('sog', 'position.x', v)} />
-            <TransformRow label="Y" labelClass="label-y" value={local.sog?.position?.y ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('sog', 'position.y', v)} />
-            <TransformRow label="Z" labelClass="label-z" value={local.sog?.position?.z ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('sog', 'position.z', v)} />
-            <div className="asset-transform-title">Escala</div>
-            <TransformRow label="Sx" labelClass="label-x" value={local.sog?.scale?.x ?? local.sog?.scale ?? 1} min={0.1} max={2} step={0.001} onChange={(v) => updateField('sog', 'scale.x', v)} />
-            <TransformRow label="Sy" labelClass="label-y" value={local.sog?.scale?.y ?? local.sog?.scale ?? 1} min={0.1} max={2} step={0.001} onChange={(v) => updateField('sog', 'scale.y', v)} />
-            <TransformRow label="Sz" labelClass="label-z" value={local.sog?.scale?.z ?? local.sog?.scale ?? 1} min={0.1} max={2} step={0.001} onChange={(v) => updateField('sog', 'scale.z', v)} />
-            <div className="asset-transform-title">Rotación</div>
-            <TransformRow label="Rx" labelClass="label-x" value={local.sog?.rotation?.x ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('sog', 'rotation.x', v)} />
-            <TransformRow label="Ry" labelClass="label-y" value={local.sog?.rotation?.y ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('sog', 'rotation.y', v)} />
-            <TransformRow label="Rz" labelClass="label-z" value={local.sog?.rotation?.z ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('sog', 'rotation.z', v)} />
-          </div>
+          </SubAccordion>
         )}
       </AssetAccordion>
 
@@ -721,19 +718,21 @@ export default function SceneEditorPanel({
           onRemove={() => onRemove('skybox')}
         />
         {local && (
-          <div className="asset-transform-section">
-            <div className="asset-transform-title">Posición</div>
-            <TransformRow label="X" labelClass="label-x" value={local.skybox?.position?.x ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('skybox', 'position.x', v)} />
-            <TransformRow label="Y" labelClass="label-y" value={local.skybox?.position?.y ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('skybox', 'position.y', v)} />
-            <TransformRow label="Z" labelClass="label-z" value={local.skybox?.position?.z ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('skybox', 'position.z', v)} />
-            <div className="asset-transform-title">Ajustes</div>
-            <TransformRow label="R" labelClass="label-r" value={local.skybox?.radius ?? 400} min={10} max={50000} step={10} onChange={(v) => updateField('skybox', 'radius', v)} help="Radio de la esfera del skybox" />
-            <TransformRow label="B" labelClass="label-b" value={local.skybox?.blur ?? 0} min={0} max={80} step={1} onChange={(v) => updateField('skybox', 'blur', v)} help="Desenfoque del skybox" />
-            <div className="asset-transform-title">Rotación</div>
-            <TransformRow label="Rx" labelClass="label-x" value={local.skybox?.rotation?.x ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('skybox', 'rotation.x', v)} />
-            <TransformRow label="Ry" labelClass="label-y" value={local.skybox?.rotation?.y ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('skybox', 'rotation.y', v)} />
-            <TransformRow label="Rz" labelClass="label-z" value={local.skybox?.rotation?.z ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('skybox', 'rotation.z', v)} />
-          </div>
+          <SubAccordion title="Transform" icon="📐">
+            <div className="asset-transform-section">
+              <div className="asset-transform-title">Posición</div>
+              <TransformRow label="X" labelClass="label-x" value={local.skybox?.position?.x ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('skybox', 'position.x', v)} />
+              <TransformRow label="Y" labelClass="label-y" value={local.skybox?.position?.y ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('skybox', 'position.y', v)} />
+              <TransformRow label="Z" labelClass="label-z" value={local.skybox?.position?.z ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('skybox', 'position.z', v)} />
+              <div className="asset-transform-title">Ajustes</div>
+              <TransformRow label="R" labelClass="label-r" value={local.skybox?.radius ?? 400} min={10} max={50000} step={10} onChange={(v) => updateField('skybox', 'radius', v)} help="Radio de la esfera del skybox" />
+              <TransformRow label="B" labelClass="label-b" value={local.skybox?.blur ?? 0} min={0} max={80} step={1} onChange={(v) => updateField('skybox', 'blur', v)} help="Desenfoque del skybox" />
+              <div className="asset-transform-title">Rotación</div>
+              <TransformRow label="Rx" labelClass="label-x" value={local.skybox?.rotation?.x ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('skybox', 'rotation.x', v)} />
+              <TransformRow label="Ry" labelClass="label-y" value={local.skybox?.rotation?.y ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('skybox', 'rotation.y', v)} />
+              <TransformRow label="Rz" labelClass="label-z" value={local.skybox?.rotation?.z ?? 0} min={-180} max={180} step={1} onChange={(v) => updateField('skybox', 'rotation.z', v)} />
+            </div>
+          </SubAccordion>
         )}
       </AssetAccordion>
 
@@ -762,34 +761,36 @@ export default function SceneEditorPanel({
           onSaveSatelliteUrl={onSaveSatelliteUrl}
         />
         {local && (
-          <div className="asset-transform-section">
-            <div className="asset-transform-title">Posición</div>
-            <TransformRow label="X" labelClass="label-x" value={local.floor?.position?.x ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('floor', 'position.x', v)} />
-            <TransformRow label="Y" labelClass="label-y" value={local.floor?.position?.y ?? -0.5} min={-500} max={500} step={0.5} onChange={(v) => updateField('floor', 'position.y', v)} />
-            <TransformRow label="Z" labelClass="label-z" value={local.floor?.position?.z ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('floor', 'position.z', v)} />
-            <div className="asset-transform-title">Ajustes</div>
-            <TransformRow label="S" labelClass="label-s" value={local.floor?.scale ?? 1050} min={10} max={50000} step={10} onChange={(v) => updateField('floor', 'scale', v)} help="Tamaño del plano" />
-            <TransformRow label="B" labelClass="label-b" value={local.floor?.blur ?? 0} min={0} max={80} step={1} onChange={(v) => updateField('floor', 'blur', v)} help="Desenfoque de la textura" />
-            <TransformRow label="R" labelClass="label-r" value={local.floor?.rotation ?? 0} min={0} max={360} step={1} onChange={(v) => updateField('floor', 'rotation', v)} help="Rotación en grados" />
-            <div className="asset-transform-title">Máscara esférica</div>
-            <label className="hdri-checkbox-row">
-              <input
-                type="checkbox"
-                checked={local.mask?.enabled !== false}
-                onChange={(e) => updateField('mask', 'enabled', e.target.checked)}
-              />
-              <span>Activar máscara</span>
-            </label>
-            {local.mask?.enabled !== false && (
-              <>
-                <TransformRow label="X" labelClass="label-x" value={local.mask?.position?.x ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('mask', 'position.x', v)} />
-                <TransformRow label="Y" labelClass="label-y" value={local.mask?.position?.y ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('mask', 'position.y', v)} />
-                <TransformRow label="Z" labelClass="label-z" value={local.mask?.position?.z ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('mask', 'position.z', v)} />
-                <TransformRow label="R" labelClass="label-r" value={local.mask?.radius ?? 50} min={1} max={500} step={1} onChange={(v) => updateField('mask', 'radius', v)} help="Radio de la máscara" />
-                <TransformRow label="F" labelClass="label-b" value={local.mask?.falloff ?? 10} min={0} max={100} step={1} onChange={(v) => updateField('mask', 'falloff', v)} help="Suavidad del borde" />
-              </>
-            )}
-          </div>
+          <SubAccordion title="Transform" icon="📐">
+            <div className="asset-transform-section">
+              <div className="asset-transform-title">Posición</div>
+              <TransformRow label="X" labelClass="label-x" value={local.floor?.position?.x ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('floor', 'position.x', v)} />
+              <TransformRow label="Y" labelClass="label-y" value={local.floor?.position?.y ?? -0.5} min={-500} max={500} step={0.5} onChange={(v) => updateField('floor', 'position.y', v)} />
+              <TransformRow label="Z" labelClass="label-z" value={local.floor?.position?.z ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('floor', 'position.z', v)} />
+              <div className="asset-transform-title">Ajustes</div>
+              <TransformRow label="S" labelClass="label-s" value={local.floor?.scale ?? 1050} min={10} max={50000} step={10} onChange={(v) => updateField('floor', 'scale', v)} help="Tamaño del plano" />
+              <TransformRow label="B" labelClass="label-b" value={local.floor?.blur ?? 0} min={0} max={80} step={1} onChange={(v) => updateField('floor', 'blur', v)} help="Desenfoque de la textura" />
+              <TransformRow label="R" labelClass="label-r" value={local.floor?.rotation ?? 0} min={0} max={360} step={1} onChange={(v) => updateField('floor', 'rotation', v)} help="Rotación en grados" />
+              <div className="asset-transform-title">Máscara esférica</div>
+              <label className="hdri-checkbox-row">
+                <input
+                  type="checkbox"
+                  checked={local.mask?.enabled !== false}
+                  onChange={(e) => updateField('mask', 'enabled', e.target.checked)}
+                />
+                <span>Activar máscara</span>
+              </label>
+              {local.mask?.enabled !== false && (
+                <>
+                  <TransformRow label="X" labelClass="label-x" value={local.mask?.position?.x ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('mask', 'position.x', v)} />
+                  <TransformRow label="Y" labelClass="label-y" value={local.mask?.position?.y ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('mask', 'position.y', v)} />
+                  <TransformRow label="Z" labelClass="label-z" value={local.mask?.position?.z ?? 0} min={-500} max={500} step={0.5} onChange={(v) => updateField('mask', 'position.z', v)} />
+                  <TransformRow label="R" labelClass="label-r" value={local.mask?.radius ?? 50} min={1} max={500} step={1} onChange={(v) => updateField('mask', 'radius', v)} help="Radio de la máscara" />
+                  <TransformRow label="F" labelClass="label-b" value={local.mask?.falloff ?? 10} min={0} max={100} step={1} onChange={(v) => updateField('mask', 'falloff', v)} help="Suavidad del borde" />
+                </>
+              )}
+            </div>
+          </SubAccordion>
         )}
       </AssetAccordion>
 
