@@ -8,7 +8,7 @@
 import { useState, useCallback, useEffect } from 'react';
 
 export default function LeftPanelStack({ children, title, show = true }) {
-  const [activePanel, setActivePanel] = useState('unidadesList');
+  const [activePanel, setActivePanel] = useState(null);
   const [visible, setVisible] = useState(false);
 
   // Animate in when `show` becomes true
