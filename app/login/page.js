@@ -40,10 +40,11 @@ function LoginForm() {
       console.log('[LOGIN] Response data:', data);
 
       if (res.ok) {
-        // Redirect to the page they originally wanted (or home)
+        // Hard navigation so the browser sends the new session cookie
+        // (soft navigation via router.push won't re-run middleware with the cookie)
         const from = searchParams.get('from') || '/';
         console.log('[LOGIN] Success — redirecting to:', from);
-        router.push(from);
+        window.location.href = from;
       } else {
         setError(data.error || 'Error de autenticación');
         setShake(true);

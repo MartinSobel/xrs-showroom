@@ -6,6 +6,16 @@ Formato: [Versionado Semántico](https://semver.org/lang/es/) · Fechas en AAAA-
 
 ---
 
+## [0.9.3] — 2026-04-24
+
+### 🐛 Fixes
+- set Node.js 20 runtime for Firebase Cloud Functions
+
+### 📦 Chores
+- v0.9.2
+
+---
+
 ## [0.9.2] — 2026-04-24
 
 ### 📦 Chores
