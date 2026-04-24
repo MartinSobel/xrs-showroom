@@ -1023,6 +1023,87 @@ body {
   margin-bottom: 6px;
 }
 
+/* ─── Animation / Splat Setting Controls ─── */
+.splat-setting-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  min-height: 26px;
+}
+
+.splat-setting-label {
+  width: 42px;
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: right;
+  letter-spacing: 0.02em;
+}
+
+.splat-select {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  padding-right: 24px;
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23555b70' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 10px 6px;
+}
+
+.splat-select:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.splat-select:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 2px rgba(68, 136, 255, 0.12);
+}
+
+.splat-select option {
+  background: #1a1c2e;
+  color: var(--text-primary);
+  padding: 4px 8px;
+}
+
+.splat-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+  flex: 1;
+}
+
+.splat-checkbox-label:hover {
+  color: var(--text-primary);
+}
+
+.splat-checkbox-label input[type="checkbox"] {
+  accent-color: var(--accent-blue);
+  cursor: pointer;
+  flex-shrink: 0;
+  width: 13px;
+  height: 13px;
+}
+
 /* Gizmo toolbar row inside transform section */
 .asset-transform-gizmo-row {
   display: flex;
