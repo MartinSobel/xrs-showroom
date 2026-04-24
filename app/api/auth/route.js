@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-const SESSION_COOKIE = 'xrs_session';
+// Firebase Hosting only preserves a cookie named "__session" — all others are stripped.
+const SESSION_COOKIE = '__session';
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
 /**
