@@ -1,9 +1,9 @@
 {
-  "version": "0.9.1",
+  "version": "0.9.2",
   "buildDate": "2026-04-24",
-  "commitHash": "686119d",
+  "commitHash": "6bfe588",
   "environment": "production",
   "features": [
-    "add interactive 360° panorama viewer and support for panoramic images in unit data configuration"
+    "Maintenance and stability improvements"
   ]
 }

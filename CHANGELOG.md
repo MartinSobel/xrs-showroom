@@ -6,6 +6,13 @@ Formato: [Versionado Semántico](https://semver.org/lang/es/) · Fechas en AAAA-
 
 ---
 
+## [0.9.2] — 2026-04-24
+
+### 📦 Chores
+- v0.9.1
+
+---
+
 ## [0.9.1] — 2026-04-24
 
 ### ✨ Features
