@@ -1,9 +1,10 @@
 {
-  "version": "0.9.7",
-  "buildDate": "2026-04-24",
-  "commitHash": "6ead514",
+  "version": "0.9.8",
+  "buildDate": "2026-04-27",
+  "commitHash": "184f0a9",
   "environment": "production",
   "features": [
-    "Maintenance and stability improvements"
+    "add responsive styles for unidad-modal on mobile devices",
+    "add CSS styles for splat setting control components"
   ]
 }

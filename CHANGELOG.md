@@ -6,6 +6,20 @@ Formato: [Versionado Semántico](https://semver.org/lang/es/) · Fechas en AAAA-
 
 ---
 
+## [0.9.8] — 2026-04-27
+
+### ✨ Features
+- add responsive styles for unidad-modal on mobile devices
+- add CSS styles for splat setting control components
+
+### 🐛 Fixes
+- prevent overlay close on drag by validating mouse target on mousedown and mouseup
+
+### 📦 Chores
+- v0.9.7
+
+---
+
 ## [0.9.7] — 2026-04-24
 
 ### 📦 Chores
