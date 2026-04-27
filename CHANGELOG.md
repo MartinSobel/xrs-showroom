@@ -6,10 +6,31 @@ Formato: [Versionado Semántico](https://semver.org/lang/es/) · Fechas en AAAA-
 
 ---
 
-## [0.9.9] — 2026-04-27
+## [0.10.0] — 2026-04-27
+
+### 🔒 Security
+- Remove insecure `/api/proxy` endpoint (SSRF vulnerability)
+- Implement HMAC-SHA256 signed session tokens (`lib/session.js`)
+- Migrate `map2tex` from `exec()` to `execFile()` with input sanitization
+- Strip 13 debug `console.log` statements from auth/login flows
+- Remove redundant `.env` file (use `.env.local` only)
+
+### ♻️ Refactor
+- Extract `setWithTimestamp` atomic helper in `lib/scenes.js`
+- Create `makeDebouncedUpdate` factory in `useScene.js` (−87 lines)
+- Create shared `useSceneLoader` hook (−200 lines duplicated code)
+- Decompose `SceneEditorPanel` into `TransformRow`, `AssetAccordion`, `ModelChecker`
+- Extract Viewer3D animations → `components/viewer/animations.js` (363 lines)
+- Extract Viewer3D quality system → `components/viewer/quality.js` (109 lines)
+- Extract Viewer3D helpers → `components/viewer/helpers.js` (91 lines)
+- Split `globals.css` (5,417 → 546 lines) into 7 component CSS files
+
+### ✨ Features
+- Add ESLint 9 with `eslint-config-next/core-web-vitals`
+- Add `yarn lint` and `yarn lint:fix` scripts
 
 ### 📦 Chores
-- v0.9.8
+- Bump version to 0.10.0
 
 ---
 
