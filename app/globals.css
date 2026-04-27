@@ -4777,6 +4777,30 @@ body {
   overflow: hidden;
 }
 
+/* ─── Version badge ─── */
+.version-badge {
+  position: fixed;
+  bottom: 12px;
+  right: 14px;
+  font-size: 0.65rem;
+  font-family: var(--font-mono, 'SF Mono', 'Fira Code', monospace);
+  color: var(--text-muted, rgba(255, 255, 255, 0.3));
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  pointer-events: none;
+  user-select: none;
+  z-index: 9;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.version-badge:hover {
+  opacity: 1;
+}
+
 /* Ambient glow blobs */
 .login-bg-glow {
   position: absolute;

@@ -2,6 +2,7 @@
 
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import versionData from '../../version.json';
 
 export default function LoginPage() {
   return (
@@ -134,6 +135,7 @@ function LoginForm() {
           </button>
         </div>
       </form>
+      <span className="version-badge">v{versionData.version}</span>
     </div>
   );
 }

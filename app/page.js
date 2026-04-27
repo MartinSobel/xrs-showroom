@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSceneList } from '@/hooks/useSceneList';
 import { createScene, deleteScene, renameScene } from '@/lib/scenes';
 import { deleteSceneAssets } from '@/lib/storage';
+import versionData from '../version.json';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 
 export default function HomePage() {
@@ -181,6 +182,8 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      <span className="version-badge">v{versionData.version}</span>
 
       {deleteTarget && (
         <ConfirmDialog
