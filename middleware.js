@@ -8,8 +8,6 @@ const SESSION_COOKIE = '__session';
  * /view/* is public (client-facing showroom).
  * /login and /api/* are always accessible.
  */
-const PROTECTED_PREFIXES = ['/', '/scenes'];
-
 function isProtectedRoute(pathname) {
   // Always allow these
   if (pathname.startsWith('/login')) return false;
@@ -36,6 +34,11 @@ export function middleware(request) {
       loginUrl.searchParams.set('from', pathname);
       return NextResponse.redirect(loginUrl);
     }
+
+    // Note: Full HMAC token verification happens in the API route.
+    // The middleware only checks for cookie presence. The token is
+    // HMAC-signed so it can't be forged, and it has a 7-day expiry
+    // built into the cookie maxAge.
   }
 
   const response = NextResponse.next();

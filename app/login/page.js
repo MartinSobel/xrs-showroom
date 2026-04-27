@@ -22,29 +22,22 @@ function LoginForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('[LOGIN] handleSubmit triggered');
     if (!password.trim() || loading) return;
 
     setLoading(true);
     setError('');
 
     try {
-      console.log('[LOGIN] Fetching /api/auth …');
       const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
       });
 
-      console.log('[LOGIN] Response status:', res.status);
       const data = await res.json();
-      console.log('[LOGIN] Response data:', data);
 
       if (res.ok) {
-        // Hard navigation so the browser sends the new session cookie
-        // (soft navigation via router.push won't re-run middleware with the cookie)
         const from = searchParams.get('from') || '/';
-        console.log('[LOGIN] Success — redirecting to:', from);
         window.location.href = from;
       } else {
         setError(data.error || 'Error de autenticación');
@@ -53,7 +46,6 @@ function LoginForm() {
         setPassword('');
       }
     } catch (err) {
-      console.error('[LOGIN] Fetch error:', err);
       setError('Error de conexión');
       setShake(true);
       setTimeout(() => setShake(false), 500);

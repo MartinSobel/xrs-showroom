@@ -1,0 +1,586 @@
+/* ═══════════════════════════════════════
+   FLOATING PANEL
+/* ═══════════════════════════════════════
+/* ═══════════════════════════════════════
+   ═══════════════════════════════════════ */
+.floating-panel {
+  position: fixed;
+  z-index: 200;
+  background: var(--bg-panel);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  /* box-shadow: var(--shadow-panel); */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform var(--transition), opacity var(--transition);
+}
+
+.floating-panel.collapsed .panel-header {
+  border-bottom: none;
+}
+
+/* ─── Accordion body wrapper (grid-row animation) ─── */
+.panel-body-wrapper {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.floating-panel.collapsed .panel-body-wrapper {
+  grid-template-rows: 0fr;
+}
+
+.panel-body-wrapper > .panel-body {
+  min-height: 0;
+  overflow: hidden;
+  transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.floating-panel.collapsed .panel-body-wrapper > .panel-body {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.floating-panel:not(.collapsed) .panel-body-wrapper > .panel-body {
+  overflow-y: auto;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition-fast),
+              border-color 0.3s ease;
+  flex-shrink: 0;
+}
+
+.panel-header:hover {
+  background: var(--bg-hover);
+}
+
+.panel-header h3 {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-header .panel-icon {
+  font-size: 0.6rem;
+}
+
+.panel-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-header-extra {
+  display: flex;
+  align-items: center;
+}
+
+.panel-header-extra .gizmo-toolbar {
+  padding: 2px;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.panel-header-extra .gizmo-btn {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-toggle {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.collapsed .panel-toggle {
+  transform: rotate(-90deg);
+}
+
+.panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+}
+
+/* ─── Left Panel Nomada Overrides for FloatingPanel ─── */
+.left-panel-stack .panel-header {
+  border-bottom: 1px solid var(--lp-border);
+  padding: 12px 20px;
+  transition: background 0.15s, border-color 0.3s ease;
+}
+
+.left-panel-stack .floating-panel.collapsed .panel-header {
+  border-bottom: 1px solid transparent;
+}
+
+.left-panel-stack .panel-header:hover {
+  background: var(--lp-hover);
+}
+
+.left-panel-stack .panel-header h3 {
+  font-size: 13px;
+  color: var(--lp-text);
+  letter-spacing: 0.3px;
+}
+
+.left-panel-stack .panel-toggle {
+  color: var(--lp-text-dim);
+}
+
+.left-panel-stack .panel-body {
+  padding: 12px 14px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+.left-panel-stack .empty-state {
+  color: var(--lp-text-dim);
+}
+
+.left-panel-stack .empty-state p {
+  color: var(--lp-text-muted);
+  font-size: 13px;
+}
+
+/* ─── Panel Positions ─── */
+.panel-left {
+  top: 16px;
+  left: 16px;
+  width: 340px;
+  max-height: calc(100vh - 32px);
+  background: rgba(12, 13, 24, 0.95);
+}
+
+.panel-bottom-left {
+  bottom: 16px;
+  left: 16px;
+  width: 260px;
+  max-height: calc(50vh - 20px);
+}
+
+.panel-bottom-right {
+  bottom: 16px;
+  right: 16px;
+  width: 260px;
+  max-height: calc(50vh - 20px);
+}
+
+/* ─── Left Sidebar (Nomada-inspired, floating) ─── */
+.left-panel-stack {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  width: 340px;
+  max-height: calc(100vh - 32px);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+  overflow: hidden;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s ease;
+  background: var(--lp-bg);
+  border: 1px solid var(--lp-border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+  /* Start hidden — JS adds .stack-entered to reveal */
+  opacity: 0;
+  transform: translateX(-40px) scale(0.96);
+  filter: blur(4px);
+}
+
+.left-panel-stack.stack-entered {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  filter: blur(0);
+  pointer-events: none; /* children re-enable via pointer-events: auto */
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.5s ease;
+}
+
+.left-panel-stack.stack-hidden {
+  opacity: 0;
+  transform: translateX(-360px);
+  pointer-events: none;
+  filter: none;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s ease;
+}
+
+/* Hide toggle button until JS mounts */
+.panel-stack-toggle.toggle-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ─── Sidebar Header (generic) ─── */
+.sidebar-header {
+  pointer-events: auto;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+}
+
+/* ─── Sidebar Header (Nomada-inspired left panel override) ─── */
+.left-panel-stack .sidebar-header {
+  border-bottom: 1px solid var(--lp-border);
+  padding: 20px 20px 16px;
+}
+
+.left-panel-stack .sidebar-header-top {
+  padding: 0;
+}
+
+.sidebar-scene-name-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar-scene-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-md);
+  transition: background 0.15s;
+}
+
+.sidebar-scene-name:hover {
+  background: var(--bg-hover);
+}
+
+.left-panel-stack .sidebar-scene-name:hover {
+  background: var(--lp-hover);
+}
+
+.sidebar-scene-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.left-panel-stack .sidebar-scene-label {
+  font-size: 15px;
+  color: var(--lp-text);
+  letter-spacing: 0.3px;
+  max-width: 220px;
+}
+
+.sidebar-scene-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+
+.sidebar-scene-chevron svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sidebar-view-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sidebar-view-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--accent-blue);
+}
+
+.sidebar-close-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  background: none;
+  border: none;
+  color: var(--lp-text-dim);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sidebar-close-btn:hover {
+  background: var(--lp-hover);
+  color: var(--lp-text);
+}
+
+/* Scene Picker Dropdown */
+.sidebar-scene-picker {
+  border-top: 1px solid var(--border-color);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.sidebar-scene-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.sidebar-scene-option:hover {
+  background: var(--bg-elevated);
+}
+
+.sidebar-scene-option.active {
+  color: var(--accent-blue);
+  font-weight: 600;
+}
+
+.sidebar-scene-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  flex-shrink: 0;
+}
+
+.sidebar-scene-option.active .sidebar-scene-dot {
+  background: var(--accent-blue);
+}
+
+.sidebar-scene-home {
+  border-top: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+/* ─── Scrollable panels area ─── */
+.sidebar-panels {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+.left-panel-stack .sidebar-panels::-webkit-scrollbar {
+  width: 5px;
+}
+
+.left-panel-stack .sidebar-panels::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+}
+
+.sidebar-panels>.floating-panel {
+  position: relative;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  width: 100%;
+  pointer-events: auto;
+  flex-shrink: 0;
+  max-height: none;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.left-panel-stack .sidebar-panels>.floating-panel {
+  border-bottom: 1px solid var(--lp-border);
+}
+
+.sidebar-panels>.floating-panel:not(.collapsed) {
+  flex-shrink: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-panels>.floating-panel:not(.collapsed) .panel-body-wrapper > .panel-body {
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* ─── Bottom slot (performance, etc.) ─── */
+.sidebar-bottom {
+  flex-shrink: 0;
+  border-top: 1px solid var(--border-color);
+  pointer-events: auto;
+}
+
+.sidebar-bottom>.floating-panel {
+  position: relative;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  width: 100%;
+  pointer-events: auto;
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.sidebar-bottom>.floating-panel:not(.collapsed) .panel-body-wrapper > .panel-body {
+  overflow-y: auto;
+  max-height: 300px;
+}
+
+/* ─── Panel Stack Toggle Button (Nomada-inspired) ─── */
+.panel-stack-toggle {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 201;
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--lp-text);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s, opacity 0.3s;
+  pointer-events: auto;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+.panel-stack-toggle:hover {
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+}
+
+.panel-stack-toggle.toggle-visible {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ─── Right Sidebar (scene settings) ─── */
+.right-panel-stack {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 310px;
+  max-height: calc(100vh - 32px);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+  overflow: hidden;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  background: var(--bg-panel);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+}
+
+.right-panel-stack .sidebar-header,
+.right-panel-stack .sidebar-panels,
+.right-panel-stack .sidebar-panels>.floating-panel {
+  pointer-events: auto;
+}
+
+.right-panel-stack.stack-hidden {
+  transform: translateX(330px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ─── Right Panel Stack Toggle Button ─── */
+.right-panel-stack-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 201;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-panel);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s, opacity 0.3s;
+  pointer-events: auto;
+}
+
+.right-panel-stack-toggle:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.right-panel-stack-toggle.toggle-visible {
+  opacity: 0;
+  pointer-events: none;
+}
+

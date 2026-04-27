@@ -4,8 +4,21 @@
 
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { subscribeScene, updateTransforms as dbUpdateTransforms, updateOrbit as dbUpdateOrbit, updateMaterials as dbUpdateMaterials, updateUnidades as dbUpdateUnidades, updateAmenities as dbUpdateAmenities, updateCollidersVisible as dbUpdateCollidersVisible, updateLighting as dbUpdateLighting, updateGlbSettings as dbUpdateGlbSettings, updateSplatSettings as dbUpdateSplatSettings, updateSceneAsset, removeSceneAsset } from '@/lib/scenes';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import {
+  subscribeScene,
+  updateTransforms as dbUpdateTransforms,
+  updateOrbit as dbUpdateOrbit,
+  updateMaterials as dbUpdateMaterials,
+  updateUnidades as dbUpdateUnidades,
+  updateAmenities as dbUpdateAmenities,
+  updateCollidersVisible as dbUpdateCollidersVisible,
+  updateLighting as dbUpdateLighting,
+  updateGlbSettings as dbUpdateGlbSettings,
+  updateSplatSettings as dbUpdateSplatSettings,
+  updateSceneAsset,
+  removeSceneAsset,
+} from '@/lib/scenes';
 import { uploadAsset as storageUpload, deleteAsset as storageDelete } from '@/lib/storage';
 
 export function useScene(sceneId) {
@@ -31,17 +44,28 @@ export function useScene(sceneId) {
   }, [sceneId]);
 
   /**
+   * Factory: creates a debounced updater for a given key and DB function.
+   * Clears the previous timer on each call and schedules a new one at 500ms.
+   */
+  const makeDebouncedUpdate = useCallback(
+    (key, dbFn) => (data) => {
+      if (!sceneId) return;
+      if (debounceTimers.current[key]) clearTimeout(debounceTimers.current[key]);
+      debounceTimers.current[key] = setTimeout(() => {
+        dbFn(sceneId, data).catch(console.error);
+      }, 500);
+    },
+    [sceneId]
+  );
+
+  /**
    * Update transforms with debounce (saves 500ms after last change).
+   * Kept separate because it takes two args: (type, transforms).
    */
   const updateTransforms = useCallback(
     (type, transforms) => {
       if (!sceneId) return;
-
-      // Clear previous timer for this type
-      if (debounceTimers.current[type]) {
-        clearTimeout(debounceTimers.current[type]);
-      }
-
+      if (debounceTimers.current[type]) clearTimeout(debounceTimers.current[type]);
       debounceTimers.current[type] = setTimeout(() => {
         dbUpdateTransforms(sceneId, type, transforms).catch(console.error);
       }, 500);
@@ -49,134 +73,17 @@ export function useScene(sceneId) {
     [sceneId]
   );
 
-  /**
-   * Update orbit settings with debounce.
-   */
-  const updateOrbit = useCallback(
-    (orbit) => {
-      if (!sceneId) return;
-
-      if (debounceTimers.current.orbit) {
-        clearTimeout(debounceTimers.current.orbit);
-      }
-
-      debounceTimers.current.orbit = setTimeout(() => {
-        dbUpdateOrbit(sceneId, orbit).catch(console.error);
-      }, 500);
-    },
-    [sceneId]
-  );
+  // Debounced updaters — all share the same pattern via factory
+  const updateOrbit = useMemo(() => makeDebouncedUpdate('orbit', dbUpdateOrbit), [makeDebouncedUpdate]);
+  const updateMaterials = useMemo(() => makeDebouncedUpdate('materials', dbUpdateMaterials), [makeDebouncedUpdate]);
+  const updateUnidades = useMemo(() => makeDebouncedUpdate('unidades', dbUpdateUnidades), [makeDebouncedUpdate]);
+  const updateAmenities = useMemo(() => makeDebouncedUpdate('amenities', dbUpdateAmenities), [makeDebouncedUpdate]);
+  const updateLighting = useMemo(() => makeDebouncedUpdate('lighting', dbUpdateLighting), [makeDebouncedUpdate]);
+  const updateGlbSettings = useMemo(() => makeDebouncedUpdate('glbSettings', dbUpdateGlbSettings), [makeDebouncedUpdate]);
+  const updateSplatSettings = useMemo(() => makeDebouncedUpdate('splatSettings', dbUpdateSplatSettings), [makeDebouncedUpdate]);
 
   /**
-   * Update material overrides with debounce.
-   */
-  const updateMaterials = useCallback(
-    (materials) => {
-      if (!sceneId) return;
-
-      if (debounceTimers.current.materials) {
-        clearTimeout(debounceTimers.current.materials);
-      }
-
-      debounceTimers.current.materials = setTimeout(() => {
-        dbUpdateMaterials(sceneId, materials).catch(console.error);
-      }, 500);
-    },
-    [sceneId]
-  );
-
-  /**
-   * Update unidades settings with debounce.
-   */
-  const updateUnidades = useCallback(
-    (unidades) => {
-      if (!sceneId) return;
-
-      if (debounceTimers.current.unidades) {
-        clearTimeout(debounceTimers.current.unidades);
-      }
-
-      debounceTimers.current.unidades = setTimeout(() => {
-        dbUpdateUnidades(sceneId, unidades).catch(console.error);
-      }, 500);
-    },
-    [sceneId]
-  );
-
-  /**
-   * Update amenities settings with debounce.
-   */
-  const updateAmenities = useCallback(
-    (amenities) => {
-      if (!sceneId) return;
-
-      if (debounceTimers.current.amenities) {
-        clearTimeout(debounceTimers.current.amenities);
-      }
-
-      debounceTimers.current.amenities = setTimeout(() => {
-        dbUpdateAmenities(sceneId, amenities).catch(console.error);
-      }, 500);
-    },
-    [sceneId]
-  );
-
-  /**
-   * Update lighting settings with debounce.
-   */
-  const updateLighting = useCallback(
-    (lighting) => {
-      if (!sceneId) return;
-
-      if (debounceTimers.current.lighting) {
-        clearTimeout(debounceTimers.current.lighting);
-      }
-
-      debounceTimers.current.lighting = setTimeout(() => {
-        dbUpdateLighting(sceneId, lighting).catch(console.error);
-      }, 500);
-    },
-    [sceneId]
-  );
-
-  /**
-   * Update GLB reveal settings with debounce.
-   */
-  const updateGlbSettings = useCallback(
-    (glbSettings) => {
-      if (!sceneId) return;
-
-      if (debounceTimers.current.glbSettings) {
-        clearTimeout(debounceTimers.current.glbSettings);
-      }
-
-      debounceTimers.current.glbSettings = setTimeout(() => {
-        dbUpdateGlbSettings(sceneId, glbSettings).catch(console.error);
-      }, 500);
-    },
-    [sceneId]
-  );
-
-  /**
-   * Update splat loader settings with debounce.
-   */
-  const updateSplatSettings = useCallback(
-    (splatSettings) => {
-      if (!sceneId) return;
-
-      if (debounceTimers.current.splatSettings) {
-        clearTimeout(debounceTimers.current.splatSettings);
-      }
-
-      debounceTimers.current.splatSettings = setTimeout(() => {
-        dbUpdateSplatSettings(sceneId, splatSettings).catch(console.error);
-      }, 500);
-    },
-    [sceneId]
-  );
-
-  /**
-   * Update colliders visibility flag (persists to DB immediately).
+   * Update colliders visibility flag (persists to DB immediately — no debounce).
    */
   const updateCollidersVisible = useCallback(
     (visible) => {
@@ -274,3 +181,4 @@ export function useScene(sceneId) {
     removeAsset,
   };
 }
+

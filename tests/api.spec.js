@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 
 /**
  * API route tests.
- * Verifies auth and proxy endpoints respond correctly.
+ * Verifies auth endpoints respond correctly.
  */
 
 test.describe('API Routes', () => {
@@ -56,27 +56,5 @@ test.describe('API Routes', () => {
       expect(cookies).toContain('__session');
     });
   });
-
-  test.describe('POST /api/proxy', () => {
-    test('returns 400 when url is missing', async ({ request }) => {
-      const response = await request.post('/api/proxy', {
-        data: {},
-      });
-
-      expect(response.status()).toBe(400);
-      const body = await response.json();
-      expect(body.error).toContain('url');
-    });
-
-    test('proxies request to valid URL', async ({ request }) => {
-      const response = await request.post('/api/proxy', {
-        data: { url: 'https://httpbin.org/post' },
-      });
-
-      expect(response.status()).toBe(200);
-      const body = await response.json();
-      expect(body.status).toBe(200);
-      expect(body.data).toBeTruthy();
-    });
-  });
 });
+

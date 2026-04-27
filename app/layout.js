@@ -1,4 +1,11 @@
 import './globals.css';
+import './styles/panels.css';
+import './styles/home.css';
+import './styles/editor.css';
+import './styles/units.css';
+import './styles/viewer.css';
+import './styles/login.css';
+import './styles/materials.css';
 
 export const metadata = {
   title: 'XRS Showroom',

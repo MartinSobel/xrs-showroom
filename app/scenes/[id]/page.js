@@ -9,6 +9,7 @@ import { useRef, useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { useScene } from '@/hooks/useScene';
+import { useSceneLoader } from '@/hooks/useSceneLoader';
 import { useHistory } from '@/hooks/useHistory';
 import { updateScene } from '@/lib/scenes';
 import UnidadesListPanel from '@/components/panels/UnidadesListPanel';
@@ -33,11 +34,6 @@ export default function ScenePage() {
   const sceneId = params?.id;
   const viewerRef = useRef(null);
   const [viewerReady, setViewerReady] = useState(false);
-  const [loadingAssets, setLoadingAssets] = useState(true);
-  const [dismissing, setDismissing] = useState(false);
-  const [loadProgress, setLoadProgress] = useState(0);
-  const [loadStatus, setLoadStatus] = useState('Iniciando…');
-  const [loadMetrics, setLoadMetrics] = useState(null);
 
   const [modalUnit, setModalUnit] = useState(null);
   const [modalAmenity, setModalAmenity] = useState(null);
@@ -47,19 +43,6 @@ export default function ScenePage() {
   const [hdriFromSkybox, setHdriFromSkybox] = useState(false);
   const [cameraInfo, setCameraInfo] = useState({ pitch: 0, yaw: 0, zoom: 0 });
   const cameraSelectorRef = useRef(null);
-
-  // Track load timing
-  const loadTimingRef = useRef({ startTime: null, pending: 0, done: false });
-
-  // Track which assets have been loaded to avoid re-loading
-  const loadedAssetsRef = useRef({
-    glb: null,
-    colliders: null,
-    sog: null,
-    skybox: null,
-    floor: null,
-    modelHdri: null,
-  });
 
   const {
     scene,
@@ -78,6 +61,21 @@ export default function ScenePage() {
     uploadAsset,
     removeAsset,
   } = useScene(sceneId);
+
+  // ─── Shared scene loader (assets + transforms + orbit + lighting + materials) ───
+  const {
+    loadingAssets,
+    dismissing,
+    loadProgress,
+    loadStatus,
+    loadMetrics,
+    resetLoadedAsset,
+  } = useSceneLoader({
+    viewerRef,
+    scene,
+    viewerReady,
+    isEditor: true,
+  });
 
   // ─── Undo / Redo history ───
   const snapshotRef = useRef({}); // tracks "before" state for in-progress edits
@@ -111,168 +109,6 @@ export default function ScenePage() {
   const handleViewerReady = useCallback(() => {
     setViewerReady(true);
   }, []);
-
-  // Load/update assets when scene data changes and viewer is ready
-  // Priority: GLB + floor first (critical), dismiss loading overlay, then load rest
-  useEffect(() => {
-    if (!viewerReady || !scene || !viewerRef.current) return;
-
-    const v = viewerRef.current;
-    const assets = scene.assets || {};
-    const loaded = loadedAssetsRef.current;
-    const timing = loadTimingRef.current;
-
-    async function loadAssets() {
-      timing.startTime = timing.startTime || performance.now();
-
-      // ── Phase 1: Critical assets (GLB + Floor) ──
-      const criticalPromises = [];
-      let hasCritical = false;
-
-      setLoadStatus('Cargando modelo 3D…');
-      setLoadProgress(0.05);
-
-      const glbUrl = assets.glb?.url || null;
-      if (glbUrl !== loaded.glb) {
-        loaded.glb = glbUrl;
-        if (glbUrl) {
-          hasCritical = true;
-          criticalPromises.push(v.loadGlb(glbUrl, scene.glbSettings || undefined));
-        } else {
-          v.removeGlb();
-        }
-      }
-
-      const floorUrl = assets.floor?.url || null;
-      if (floorUrl !== loaded.floor) {
-        loaded.floor = floorUrl;
-        if (floorUrl) {
-          hasCritical = true;
-          criticalPromises.push(v.loadFloorTexture(floorUrl));
-        } else {
-          v.removeFloorTexture();
-        }
-      }
-
-      // Wait for GLB + floor
-      if (criticalPromises.length > 0) {
-        await Promise.all(criticalPromises).catch(() => {});
-      }
-
-      setLoadProgress(0.8);
-      setLoadStatus('Listo');
-
-      // ── Apply initial camera position after GLB is loaded ──
-      if (scene.orbit?.initialCamera) {
-        setTimeout(() => {
-          viewerRef.current?.setInitialCameraPosition(scene.orbit.initialCamera);
-        }, 150);
-      }
-
-      // ── Dismiss loading overlay — maqueta is visible ──
-      if (hasCritical || !loadingAssets) {
-        setLoadProgress(1);
-        setTimeout(() => {
-          setDismissing(true);
-          setTimeout(() => setLoadingAssets(false), 900);
-        }, 300);
-      } else {
-        // No critical assets to load — dismiss immediately
-        setDismissing(true);
-        setTimeout(() => setLoadingAssets(false), 900);
-      }
-
-      // ── Phase 2: Secondary assets — load in background ──
-      const bgPromises = [];
-
-      const collidersUrl = assets.colliders?.url || null;
-      if (collidersUrl !== loaded.colliders) {
-        loaded.colliders = collidersUrl;
-        if (collidersUrl) {
-          bgPromises.push((async () => {
-            await v.loadColliders(collidersUrl);
-            const vis = scene.collidersVisible;
-            if (vis === false) v.setCollidersVisible(false);
-          })());
-        } else {
-          v.removeColliders();
-        }
-      }
-
-      const sogUrl = assets.sog?.url || null;
-      if (sogUrl !== loaded.sog) {
-        loaded.sog = sogUrl;
-        if (sogUrl) bgPromises.push(v.loadSog(sogUrl, scene.splatSettings || undefined).catch(() => {}));
-        else v.removeSog();
-      }
-
-      const skyUrl = assets.skybox?.url || null;
-      if (skyUrl !== loaded.skybox) {
-        loaded.skybox = skyUrl;
-        if (skyUrl) bgPromises.push(v.loadSkyboxTexture(skyUrl).catch(() => {}));
-        else v.removeSkyboxTexture();
-      }
-
-      const modelHdriUrl = assets.modelHdri?.url || null;
-      if (modelHdriUrl !== loaded.modelHdri) {
-        loaded.modelHdri = modelHdriUrl;
-        if (modelHdriUrl) bgPromises.push(v.loadModelHdri(modelHdriUrl).catch(() => {}));
-        else v.removeModelHdri();
-      }
-
-      if (bgPromises.length > 0) {
-        await Promise.all(bgPromises).catch(() => {});
-      }
-
-      // Measure total load time
-      if (timing.startTime && !timing.done) {
-        const totalTime = Math.round(performance.now() - timing.startTime);
-        timing.done = true;
-        setLoadMetrics({ totalTime });
-        console.log(`[Perf] Total load time: ${totalTime}ms`);
-      }
-    }
-
-    loadAssets();
-  }, [viewerReady, scene]);
-
-  // Apply transforms when they change from Firebase
-  useEffect(() => {
-    if (!viewerReady || !scene?.transforms || !viewerRef.current) return;
-
-    const v = viewerRef.current;
-    const t = scene.transforms;
-    if (t.glb) v.applyTransform('glb', t.glb);
-    if (t.colliders) v.applyTransform('colliders', t.colliders);
-    if (t.sog) v.applyTransform('sog', t.sog);
-    if (t.skybox) v.applyTransform('skybox', t.skybox);
-    if (t.floor) v.applyTransform('floor', t.floor);
-    if (t.mask) v.applyTransform('mask', t.mask);
-  }, [viewerReady, scene?.transforms]);
-
-  // Apply orbit settings when they change from Firebase
-  useEffect(() => {
-    if (!viewerReady || !viewerRef.current) return;
-    const orbit = scene?.orbit;
-    if (orbit) {
-      viewerRef.current.applyOrbit(orbit);
-    }
-  }, [viewerReady, scene?.orbit]);
-
-  // Apply saved material overrides when they arrive from Firebase
-  useEffect(() => {
-    if (!viewerReady || !viewerRef.current || !scene?.materials) return;
-    viewerRef.current.applyMaterialOverrides(scene.materials);
-  }, [viewerReady, scene?.materials]);
-
-  // Apply saved lighting settings when they arrive from Firebase
-  useEffect(() => {
-    if (!viewerReady || !viewerRef.current) return;
-    const lighting = scene?.lighting;
-    if (lighting) {
-      viewerRef.current.setLighting(lighting);
-    }
-  }, [viewerReady, scene?.lighting]);
 
   // Handle transform changes from the panel (live update + debounced save + history)
   const historyTimers = useRef({});
@@ -401,11 +237,8 @@ export default function ScenePage() {
     async (assetType, file) => {
       try {
         const result = await uploadAsset(assetType, file);
-        // Reset loaded tracking so the effect will load the new asset
-        loadedAssetsRef.current[assetType] = null;
-        // Reset load timing for new measurements
-        loadTimingRef.current = { startTime: null, pending: 0, done: false };
-        setLoadMetrics(null);
+        // Reset loaded tracking so the loader hook picks up the new asset
+        resetLoadedAsset(assetType);
 
         // Force immediate reload if the viewer is ready
         if (viewerReady && viewerRef.current && result?.url) {
@@ -419,7 +252,6 @@ export default function ScenePage() {
             modelHdri: () => v.loadModelHdri(result.url),
           };
           if (loaders[assetType]) {
-            loadedAssetsRef.current[assetType] = result.url;
             loaders[assetType]();
           }
         }
@@ -427,7 +259,7 @@ export default function ScenePage() {
         console.error(`Upload failed [${assetType}]:`, err);
       }
     },
-    [uploadAsset, viewerReady]
+    [uploadAsset, viewerReady, resetLoadedAsset]
   );
 
   // Handle asset removal
@@ -435,12 +267,12 @@ export default function ScenePage() {
     async (assetType) => {
       try {
         await removeAsset(assetType);
-        loadedAssetsRef.current[assetType] = null;
+        resetLoadedAsset(assetType);
       } catch (err) {
         console.error(`Remove failed [${assetType}]:`, err);
       }
     },
-    [removeAsset]
+    [removeAsset, resetLoadedAsset]
   );
 
   // Handle asset visibility toggle (with history)
