@@ -542,6 +542,8 @@
   display: flex;
   flex-direction: column;
   gap: 0;
+  flex: 1;
+  min-height: 0;
 }
 
 .unidades-list-header {
@@ -584,7 +586,9 @@
 .left-panel-stack .unidades-list-items {
   gap: 1px;
   padding: 4px 0;
-  max-height: 40vh;
+  max-height: none;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
@@ -968,6 +972,8 @@
     width: 100%;
     max-height: 45vh;
     border-radius: 18px 18px 0 0;
+    border-right: none;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.4);
     transform: translateY(100%);
     filter: none;
     opacity: 0;
@@ -1114,6 +1120,18 @@
 
   .left-panel-stack .unidades-list-count {
     font-size: 10px;
+  }
+}
+
+/* ─── Unidad Modal: Desktop — constrain to canvas area ─── */
+@media (min-width: 769px) {
+  .unidad-modal-overlay {
+    left: 340px;
+  }
+
+  .unidad-modal {
+    width: 90%;
+    max-width: 860px;
   }
 }
 

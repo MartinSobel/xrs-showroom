@@ -1,60 +1,54 @@
 'use client';
 
 /**
- * LeftPanelStack — a collapsible sidebar on the left side.
- * Starts hidden and animates in when `show` prop becomes true (e.g. after loading screen).
+ * LeftPanelStack — full-height side panel anchored to the left edge.
+ * Uses a tab bar (below the logo) to switch between content panels.
+ * Default active tab is the first one in the `tabs` array.
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 
-export default function LeftPanelStack({ children, title, show = true }) {
-  const [activePanel, setActivePanel] = useState(null);
-  const [visible, setVisible] = useState(false);
+export default function LeftPanelStack({ children, title, logoUrl, tabs = [], show = true }) {
+  const [activeTab, setActiveTab] = useState(tabs[0]?.id || null);
 
-  // Animate in when `show` becomes true
-  useEffect(() => {
-    if (show) {
-      // Small delay so the loading screen fully fades before panel appears
-      const timer = setTimeout(() => setVisible(true), 200);
-      return () => clearTimeout(timer);
-    }
-  }, [show]);
-
-  const toggle = useCallback((panelId) => {
-    setActivePanel((prev) => (prev === panelId ? null : panelId));
+  const selectTab = useCallback((tabId) => {
+    setActiveTab(tabId);
   }, []);
 
   return (
-    <>
-      {/* Toggle button — only shown when stack is hidden */}
-      <button
-        className={`panel-stack-toggle${visible ? ' toggle-visible' : ''}${!show ? ' toggle-hidden' : ''}`}
-        onClick={() => setVisible(true)}
-        title="Mostrar panel"
-      >
-        📋
-      </button>
-
-      <div className={`left-panel-stack${visible ? ' stack-entered' : ' stack-hidden'}`}>
-        {/* ─── Header ─── */}
-        <div className="sidebar-header">
-          <div className="sidebar-header-top">
+    <div className={`left-panel-stack${show ? ' stack-entered' : ' stack-hidden'}`}>
+      {/* ─── Header with logo ─── */}
+      <div className="sidebar-header">
+        <div className="sidebar-header-top">
+          {logoUrl ? (
+            <div className="sidebar-logo">
+              <img src={logoUrl} alt={title || 'Logo'} className="sidebar-logo-img" />
+            </div>
+          ) : (
             <span className="sidebar-scene-label">{title || 'Proyecto'}</span>
-            <button
-              className="sidebar-close-btn"
-              onClick={() => setVisible(false)}
-              title="Ocultar paneles"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-
-        {/* ─── Scrollable panel area ─── */}
-        <div className="sidebar-panels">
-          {typeof children === 'function' ? children({ activePanel, toggle }) : children}
+          )}
         </div>
       </div>
-    </>
+
+      {/* ─── Tab bar ─── */}
+      {tabs.length > 1 && (
+        <div className="sidebar-tabs">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              className={`sidebar-tab${activeTab === tab.id ? ' active' : ''}`}
+              onClick={() => selectTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ─── Tab content ─── */}
+      <div className="sidebar-panels">
+        {typeof children === 'function' ? children({ activeTab }) : children}
+      </div>
+    </div>
   );
 }

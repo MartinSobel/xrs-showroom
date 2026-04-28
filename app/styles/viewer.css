@@ -339,6 +339,14 @@
   height: 100%;
 }
 
+/* Desktop: offset canvas to account for the left side panel */
+@media (min-width: 769px) {
+  .viewer-canvas-container {
+    left: 340px;
+    width: calc(100% - 340px);
+  }
+}
+
 .viewer-canvas-container canvas {
   display: block;
   width: 100%;
@@ -359,6 +367,13 @@
   height: 16px;
   pointer-events: none;
   z-index: 100;
+}
+
+/* Desktop: center the crosshair within the canvas area (excluding panel) */
+@media (min-width: 769px) {
+  .orbit-crosshair {
+    left: calc(340px + (100% - 340px) / 2);
+  }
 }
 
 .orbit-crosshair::before,

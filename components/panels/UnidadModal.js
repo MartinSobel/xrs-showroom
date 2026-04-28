@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import dynamic from 'next/dynamic';
 
 const PanoramaViewer = dynamic(() => import('./PanoramaViewer'), { ssr: false });
 
 /**
- * UnidadModal — fullscreen modal showing unit details.
- * Left: info table + action buttons. Right: large floor plan image.
+ * UnidadModal — right-side floating panel showing unit details.
+ * Non-blocking: the rest of the page remains fully interactive.
+ * Closes when clicking anywhere outside the panel.
  *
  * Standardized field names:
  *   id, piso, ambientes, superficie_cubierta, superficie_semicubierta,
@@ -17,10 +18,29 @@ const PanoramaViewer = dynamic(() => import('./PanoramaViewer'), { ssr: false })
 export default function UnidadModal({ unit, onClose, whatsappNumber, projectName }) {
   const [mounted, setMounted] = useState(false);
   const [showPanorama, setShowPanorama] = useState(false);
+  const drawerRef = useRef(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Close on click outside
+  useEffect(() => {
+    if (!mounted || !unit) return;
+    const handleClickOutside = (e) => {
+      if (drawerRef.current && !drawerRef.current.contains(e.target)) {
+        onClose();
+      }
+    };
+    // Delay to avoid closing immediately from the same click that opened it
+    const timer = setTimeout(() => {
+      document.addEventListener('pointerdown', handleClickOutside);
+    }, 100);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('pointerdown', handleClickOutside);
+    };
+  }, [mounted, unit, onClose]);
 
   if (!unit || !mounted) return null;
 
@@ -40,75 +60,73 @@ export default function UnidadModal({ unit, onClose, whatsappNumber, projectName
   };
 
   return createPortal(
-    <div className="unidad-modal-overlay" onClick={onClose}>
-      <div className="unidad-modal" onClick={(e) => e.stopPropagation()}>
-        {/* Close button */}
-        <button className="unidad-modal-close" onClick={onClose} title="Cerrar">
-          ✕
-        </button>
-
-        {/* Left: Info */}
-        <div className="unidad-modal-info">
-          <h2 className="unidad-modal-title">Unidad {unit.id || '—'}</h2>
-
-          <div className="unidad-modal-row">
-            <span className="unidad-modal-label">Piso</span>
-            <span className="unidad-modal-value">{unit.piso || '—'}</span>
+    <>
+      <div className="unit-drawer" ref={drawerRef}>
+        {/* Scrollable content */}
+        <div className="unit-drawer-scroll">
+          {/* Floor plan image */}
+          <div className="unit-drawer-plan">
+            {unit.imagen_plano ? (
+              <img src={unit.imagen_plano} alt={`Plano ${unit.id}`} />
+            ) : (
+              <div className="unit-drawer-plan-empty">
+                <span>🏠</span>
+                <p>Sin plano disponible</p>
+              </div>
+            )}
           </div>
 
-          <div className="unidad-modal-divider" />
+          {/* Info */}
+          <div className="unit-drawer-info">
+            <h2 className="unit-drawer-title">Unidad {unit.id || '—'}</h2>
 
-          <div className="unidad-modal-row">
-            <span className="unidad-modal-label">Ambientes</span>
-            <span className="unidad-modal-value">{unit.ambientes || '—'}</span>
-          </div>
-          <div className="unidad-modal-row">
-            <span className="unidad-modal-label">Superficie cubierta</span>
-            <span className="unidad-modal-value">{unit.superficie_cubierta ?? '—'} m²</span>
-          </div>
-          <div className="unidad-modal-row">
-            <span className="unidad-modal-label">Superficie semicubierta</span>
-            <span className="unidad-modal-value">{unit.superficie_semicubierta ?? '—'} m²</span>
-          </div>
-          <div className="unidad-modal-row">
-            <span className="unidad-modal-label">Superficie amenities</span>
-            <span className="unidad-modal-value">{unit.superficie_amenities ?? '—'} m²</span>
-          </div>
-          <div className="unidad-modal-row unidad-modal-row-total">
-            <span className="unidad-modal-label">Superficie total</span>
-            <span className="unidad-modal-value">{unit.superficie_total ?? '—'} m²</span>
-          </div>
-
-          <div className="unidad-modal-actions">
-            <button
-              className={`unidad-modal-btn unidad-modal-btn-panorama${!hasPanorama ? ' disabled' : ''}`}
-              onClick={() => hasPanorama && setShowPanorama(true)}
-              disabled={!hasPanorama}
-              title={hasPanorama ? 'Ver vista panorámica 360°' : 'Sin panorama disponible'}
-            >
-              🌐 Vista Panorámica
-            </button>
-            <button
-              className={`unidad-modal-btn unidad-modal-btn-whatsapp${!whatsappUrl ? ' disabled' : ''}`}
-              onClick={handleWhatsappClick}
-              disabled={!whatsappUrl}
-              title={whatsappUrl ? 'Abrir WhatsApp' : 'Número de WhatsApp no configurado'}
-            >
-              Hablemos por WhatsApp
-            </button>
-          </div>
-        </div>
-
-        {/* Right: Floor plan image */}
-        <div className="unidad-modal-plan">
-          {unit.imagen_plano ? (
-            <img src={unit.imagen_plano} alt={`Plano ${unit.id}`} />
-          ) : (
-            <div className="unidad-modal-plan-empty">
-              <span>🏠</span>
-              <p>Sin plano disponible</p>
+            <div className="unit-drawer-row">
+              <span className="unit-drawer-label">Piso</span>
+              <span className="unit-drawer-value">{unit.piso || '—'}</span>
             </div>
-          )}
+
+            <div className="unit-drawer-divider" />
+
+            <div className="unit-drawer-row">
+              <span className="unit-drawer-label">Ambientes</span>
+              <span className="unit-drawer-value">{unit.ambientes || '—'}</span>
+            </div>
+            <div className="unit-drawer-row">
+              <span className="unit-drawer-label">Superficie cubierta</span>
+              <span className="unit-drawer-value">{unit.superficie_cubierta ?? '—'} m²</span>
+            </div>
+            <div className="unit-drawer-row">
+              <span className="unit-drawer-label">Superficie semicubierta</span>
+              <span className="unit-drawer-value">{unit.superficie_semicubierta ?? '—'} m²</span>
+            </div>
+            <div className="unit-drawer-row">
+              <span className="unit-drawer-label">Superficie amenities</span>
+              <span className="unit-drawer-value">{unit.superficie_amenities ?? '—'} m²</span>
+            </div>
+            <div className="unit-drawer-row unit-drawer-row-total">
+              <span className="unit-drawer-label">Superficie total</span>
+              <span className="unit-drawer-value">{unit.superficie_total ?? '—'} m²</span>
+            </div>
+
+            <div className="unit-drawer-actions">
+              <button
+                className={`unit-drawer-btn unit-drawer-btn-panorama${!hasPanorama ? ' disabled' : ''}`}
+                onClick={() => hasPanorama && setShowPanorama(true)}
+                disabled={!hasPanorama}
+                title={hasPanorama ? 'Ver vista panorámica 360°' : 'Sin panorama disponible'}
+              >
+                🌐 Vista Panorámica
+              </button>
+              <button
+                className={`unit-drawer-btn unit-drawer-btn-whatsapp${!whatsappUrl ? ' disabled' : ''}`}
+                onClick={handleWhatsappClick}
+                disabled={!whatsappUrl}
+                title={whatsappUrl ? 'Abrir WhatsApp' : 'Número de WhatsApp no configurado'}
+              >
+                Hablemos por WhatsApp
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -120,7 +138,7 @@ export default function UnidadModal({ unit, onClose, whatsappNumber, projectName
           onClose={() => setShowPanorama(false)}
         />
       )}
-    </div>,
+    </>,
     document.body
   );
 }

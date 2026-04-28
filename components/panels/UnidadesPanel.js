@@ -5,6 +5,7 @@ import FloatingPanel from './FloatingPanel';
 import UnidadesCargaModal from './UnidadesCargaModal';
 import AmenitiesModal from './AmenitiesModal';
 import { updateScene } from '@/lib/scenes';
+import { uploadAsset as storageUpload, deleteAsset as storageDelete } from '@/lib/storage';
 
 /**
  * Configuración Panel — manages Unidades and Amenities data entry.
@@ -23,7 +24,11 @@ export default function UnidadesPanel({
   const [showUnidadesModal, setShowUnidadesModal] = useState(false);
   const [showAmenitiesModal, setShowAmenitiesModal] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [panelLogoUrl, setPanelLogoUrl] = useState('');
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoProgress, setLogoProgress] = useState(0);
   const whatsappTimer = useRef(null);
+  const logoInputRef = useRef(null);
 
   const unidadItems = scene?.unidades?.items || [];
   const amenityItems = scene?.amenities?.items || [];
@@ -35,6 +40,13 @@ export default function UnidadesPanel({
     }
   }, [scene?.whatsappNumber]);
 
+  // Sync panel logo URL from scene data
+  useEffect(() => {
+    if (scene?.panelLogoUrl !== undefined) {
+      setPanelLogoUrl(scene.panelLogoUrl || '');
+    }
+  }, [scene?.panelLogoUrl]);
+
   const handleWhatsappChange = useCallback((value) => {
     setWhatsappNumber(value);
     if (!sceneId) return;
@@ -43,6 +55,58 @@ export default function UnidadesPanel({
       updateScene(sceneId, { whatsappNumber: value }).catch(console.error);
     }, 800);
   }, [sceneId]);
+
+  const handleLogoUpload = useCallback(async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !sceneId) return;
+
+    // Validate image type
+    if (!file.type.startsWith('image/')) return;
+
+    setLogoUploading(true);
+    setLogoProgress(0);
+
+    try {
+      // Delete old logo if exists
+      if (scene?.panelLogoFileName) {
+        await storageDelete(sceneId, 'logo', scene.panelLogoFileName).catch(() => {});
+      }
+
+      const result = await storageUpload(sceneId, 'logo', file, (progress) => {
+        setLogoProgress(progress);
+      });
+
+      setPanelLogoUrl(result.url);
+      await updateScene(sceneId, {
+        panelLogoUrl: result.url,
+        panelLogoFileName: result.fileName,
+      });
+    } catch (err) {
+      console.error('Logo upload failed:', err);
+    } finally {
+      setLogoUploading(false);
+      setLogoProgress(0);
+      // Reset input so the same file can be re-selected
+      if (logoInputRef.current) logoInputRef.current.value = '';
+    }
+  }, [sceneId, scene?.panelLogoFileName]);
+
+  const handleLogoRemove = useCallback(async () => {
+    if (!sceneId) return;
+
+    try {
+      if (scene?.panelLogoFileName) {
+        await storageDelete(sceneId, 'logo', scene.panelLogoFileName).catch(() => {});
+      }
+      setPanelLogoUrl('');
+      await updateScene(sceneId, {
+        panelLogoUrl: '',
+        panelLogoFileName: '',
+      });
+    } catch (err) {
+      console.error('Logo remove failed:', err);
+    }
+  }, [sceneId, scene?.panelLogoFileName]);
 
   const handleUnidadesSave = useCallback(async (newItems) => {
     await onUnidadesChange?.({ items: newItems });
@@ -122,6 +186,65 @@ export default function UnidadesPanel({
               />
             </div>
             <span className="whatsapp-hint">Código de país + número, sin espacios ni guiones</span>
+          </div>
+        </div>
+
+        {/* Panel logo section */}
+        <div className="transform-section">
+          <div className="transform-section-title">🖼️ Logo del panel</div>
+          <div className="whatsapp-config">
+            <span className="whatsapp-hint">Se mostrará en el encabezado del panel lateral izquierdo</span>
+
+            <input
+              ref={logoInputRef}
+              id="panel-logo-upload"
+              type="file"
+              accept="image/*"
+              className="logo-file-input"
+              onChange={handleLogoUpload}
+            />
+
+            {panelLogoUrl ? (
+              <div className="panel-logo-preview">
+                <img src={panelLogoUrl} alt="Logo preview" className="panel-logo-preview-img" />
+                <div className="panel-logo-actions">
+                  <button
+                    className="panel-logo-change-btn"
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={logoUploading}
+                  >
+                    Cambiar
+                  </button>
+                  <button
+                    className="panel-logo-remove-btn"
+                    onClick={handleLogoRemove}
+                    disabled={logoUploading}
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                className="panel-logo-upload-btn"
+                onClick={() => logoInputRef.current?.click()}
+                disabled={logoUploading}
+              >
+                {logoUploading
+                  ? `Subiendo... ${logoProgress}%`
+                  : '⬆ Subir imagen'
+                }
+              </button>
+            )}
+
+            {logoUploading && (
+              <div className="panel-logo-progress">
+                <div
+                  className="panel-logo-progress-fill"
+                  style={{ width: `${logoProgress}%` }}
+                />
+              </div>
+            )}
           </div>
         </div>
       </FloatingPanel>

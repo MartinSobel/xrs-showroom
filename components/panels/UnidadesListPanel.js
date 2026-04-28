@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import FloatingPanel from './FloatingPanel';
 import UnidadModal from './UnidadModal';
 
 /**
@@ -12,7 +11,7 @@ import UnidadModal from './UnidadModal';
  *   id, piso, ambientes, superficie_cubierta, superficie_semicubierta,
  *   superficie_amenities, superficie_total, imagen_plano
  */
-export default function UnidadesListPanel({ unidades = [], position = '', onSelectUnit, selectedUnit, onCloseModal, collapsed, onToggle, whatsappNumber, projectName }) {
+export default function UnidadesListPanel({ unidades = [], onSelectUnit, selectedUnit, onCloseModal, whatsappNumber, projectName }) {
   const items = Array.isArray(unidades) ? unidades : [];
 
   // Filter state
@@ -20,6 +19,7 @@ export default function UnidadesListPanel({ unidades = [], position = '', onSele
   const [metrajeRange, setMetrajeRange] = useState([0, 300]);
   const [showAmbientes, setShowAmbientes] = useState(false);
   const [showMetraje, setShowMetraje] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Compute min/max metraje from data
   const metrajeMinMax = useMemo(() => {
@@ -49,6 +49,13 @@ export default function UnidadesListPanel({ unidades = [], position = '', onSele
   // Filter items
   const filtered = useMemo(() => {
     return items.filter((u) => {
+      // Search query filter (match id or piso)
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const matchId = (u.id || '').toString().toLowerCase().includes(q);
+        const matchPiso = (u.piso || '').toString().toLowerCase().includes(q);
+        if (!matchId && !matchPiso) return false;
+      }
       // Ambientes filter (multi-select — match ANY selected)
       if (selectedAmb.size > 0) {
         const amb = Number(u.ambientes) || 0;
@@ -67,7 +74,7 @@ export default function UnidadesListPanel({ unidades = [], position = '', onSele
       if (sup < metrajeRange[0] || sup > metrajeRange[1]) return false;
       return true;
     });
-  }, [items, selectedAmb, metrajeRange]);
+  }, [items, selectedAmb, metrajeRange, searchQuery]);
 
   const toggleAmb = useCallback((val) => {
     setSelectedAmb((prev) => {
@@ -84,15 +91,17 @@ export default function UnidadesListPanel({ unidades = [], position = '', onSele
   const clearFilters = useCallback(() => {
     setSelectedAmb(new Set());
     setMetrajeRange(metrajeMinMax);
+    setSearchQuery('');
   }, [metrajeMinMax]);
 
   const hasActiveFilters = selectedAmb.size > 0 ||
     metrajeRange[0] !== metrajeMinMax[0] ||
-    metrajeRange[1] !== metrajeMinMax[1];
+    metrajeRange[1] !== metrajeMinMax[1] ||
+    searchQuery.length > 0;
 
   return (
     <>
-      <FloatingPanel title="Unidades" icon="🏢" position={position} collapsed={collapsed} onToggle={onToggle}>
+      <div className="tab-content-body">
         {items.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">📊</div>
@@ -100,6 +109,30 @@ export default function UnidadesListPanel({ unidades = [], position = '', onSele
           </div>
         ) : (
           <>
+            {/* ─── Search ─── */}
+            <div className="sidebar-search unidades-search">
+              <div className="sidebar-search-wrapper">
+                <span className="sidebar-search-icon">🔍</span>
+                <input
+                  id="sidebar-unit-search"
+                  type="text"
+                  className="sidebar-search-input"
+                  placeholder="Buscar unidad..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button
+                    className="sidebar-search-clear"
+                    onClick={() => setSearchQuery('')}
+                    title="Limpiar búsqueda"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* ─── Filters ─── */}
             <div className="unidad-filters">
               {/* Ambientes */}
@@ -225,7 +258,7 @@ export default function UnidadesListPanel({ unidades = [], position = '', onSele
             </div>
           </>
         )}
-      </FloatingPanel>
+      </div>
 
       {/* Unit detail modal */}
       {selectedUnit && (

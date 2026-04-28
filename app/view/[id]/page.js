@@ -52,12 +52,9 @@ export default function ViewPage() {
   }, []);
 
   const handleSelectUnit = useCallback((unit) => {
+    setModalUnit((prev) => prev?.id === unit?.id ? null : unit);
     if (viewerRef.current && unit?.id) {
-      viewerRef.current.focusOnCollider(String(unit.id), () => {
-        setModalUnit(unit);
-      });
-    } else {
-      setModalUnit(unit);
+      viewerRef.current.focusOnCollider(String(unit.id));
     }
   }, []);
 
@@ -84,27 +81,35 @@ export default function ViewPage() {
 
       {/* Left Sidebar — Units listing only */}
       {scene && (
-        <LeftPanelStack title={scene.name} show={!loadingAssets}>
-        {({ activePanel, toggle }) => (
+        <LeftPanelStack
+          title={scene.name}
+          logoUrl={scene?.panelLogoUrl}
+          show={!loadingAssets}
+          tabs={[
+            { id: 'unidades', label: 'Unidades' },
+            { id: 'amenities', label: 'Amenities' },
+          ]}
+        >
+        {({ activeTab }) => (
           <>
-            <UnidadesListPanel
-              unidades={scene?.unidades?.items || []}
-              onSelectUnit={handleSelectUnit}
-              selectedUnit={modalUnit}
-              onCloseModal={() => setModalUnit(null)}
-              collapsed={activePanel !== 'unidadesList'}
-              onToggle={() => toggle('unidadesList')}
-              whatsappNumber={scene?.whatsappNumber || ''}
-              projectName={scene?.name || ''}
-            />
-            <AmenitiesListPanel
-              amenities={scene?.amenities?.items || []}
-              onSelectAmenity={setModalAmenity}
-              selectedAmenity={modalAmenity}
-              onCloseModal={() => setModalAmenity(null)}
-              collapsed={activePanel !== 'amenitiesList'}
-              onToggle={() => toggle('amenitiesList')}
-            />
+            {activeTab === 'unidades' && (
+              <UnidadesListPanel
+                unidades={scene?.unidades?.items || []}
+                onSelectUnit={handleSelectUnit}
+                selectedUnit={modalUnit}
+                onCloseModal={() => setModalUnit(null)}
+                whatsappNumber={scene?.whatsappNumber || ''}
+                projectName={scene?.name || ''}
+              />
+            )}
+            {activeTab === 'amenities' && (
+              <AmenitiesListPanel
+                amenities={scene?.amenities?.items || []}
+                onSelectAmenity={setModalAmenity}
+                selectedAmenity={modalAmenity}
+                onCloseModal={() => setModalAmenity(null)}
+              />
+            )}
           </>
         )}
         </LeftPanelStack>
