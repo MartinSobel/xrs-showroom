@@ -64,6 +64,111 @@ const LeftPanelStack = forwardRef(function LeftPanelStack(
     setMobileTabChosen(true);
   }, []);
 
+  // ─── Drag gesture on the handle ───
+  // Live-resizes the panel while the user drags; on release, snaps to the
+  // nearest of COLLAPSED / COMPACT / TALL based on final height ratio.
+  const dragRef = useRef({
+    active: false,
+    dragging: false,
+    startY: 0,
+    startH: 0,
+    pointerId: null,
+    suppressClick: false,
+  });
+
+  // Canvas blackout timer ref (shared between snap-state effect and drag handlers).
+  // Adds .canvas-resizing to <html> to mask WebGL resize flicker.
+  const _blackoutTimer = useRef(null);
+  const blackoutCanvas = useCallback(({ hold = false } = {}) => {
+    const root = document.documentElement;
+    if (_blackoutTimer.current) clearTimeout(_blackoutTimer.current);
+    root.classList.add('canvas-resizing');
+    if (hold) {
+      _blackoutTimer.current = null;
+    } else {
+      _blackoutTimer.current = setTimeout(() => {
+        root.classList.remove('canvas-resizing');
+        _blackoutTimer.current = null;
+      }, 380); // panel transition (350ms) + small buffer
+    }
+  }, []);
+
+  const onHandlePointerDown = useCallback((e) => {
+    if (!isMobile) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+    const rect = panel.getBoundingClientRect();
+    dragRef.current = {
+      active: true,
+      dragging: false,
+      startY: e.clientY,
+      startH: rect.height,
+      pointerId: e.pointerId,
+      suppressClick: false,
+    };
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
+  }, [isMobile]);
+
+  const onHandlePointerMove = useCallback((e) => {
+    const drag = dragRef.current;
+    if (!drag.active) return;
+    const dy = e.clientY - drag.startY;
+    const panel = panelRef.current;
+    if (!panel) return;
+    if (!drag.dragging && Math.abs(dy) > 6) {
+      drag.dragging = true;
+      panel.classList.add('panel-dragging');
+      blackoutCanvas({ hold: true }); // mask WebGL flicker for the whole gesture
+    }
+    if (drag.dragging) {
+      const newH = drag.startH - dy; // drag up = grow
+      const max = window.innerHeight * 0.85;
+      const h = Math.max(0, Math.min(max, newH));
+      panel.style.maxHeight = `${h}px`;
+    }
+  }, []);
+
+  const onHandlePointerUp = useCallback(() => {
+    const drag = dragRef.current;
+    if (!drag.active) return;
+    drag.active = false;
+    const panel = panelRef.current;
+    if (!panel || !drag.dragging) return; // tap → let onClick handle it
+    drag.suppressClick = true;
+    panel.classList.remove('panel-dragging');
+    panel.style.maxHeight = '';
+    const rect = panel.getBoundingClientRect();
+    const ratio = rect.height / window.innerHeight;
+    let next;
+    if (ratio < 0.18) next = SNAP.COLLAPSED;
+    else if (ratio < 0.49) next = SNAP.COMPACT;
+    else next = SNAP.TALL;
+    setSnapState(next);
+    if (next !== SNAP.COLLAPSED) setMobileTabChosen(true);
+    // Ensure blackout is removed after the snap transition, even if snapState didn't change
+    blackoutCanvas();
+  }, [blackoutCanvas]);
+
+  const onHandlePointerCancel = useCallback(() => {
+    const drag = dragRef.current;
+    if (!drag.active) return;
+    drag.active = false;
+    const panel = panelRef.current;
+    if (panel && drag.dragging) {
+      panel.classList.remove('panel-dragging');
+      panel.style.maxHeight = '';
+      blackoutCanvas();
+    }
+  }, [blackoutCanvas]);
+
+  const onHandleClick = useCallback(() => {
+    if (dragRef.current.suppressClick) {
+      dragRef.current.suppressClick = false;
+      return;
+    }
+    handleToggle();
+  }, [handleToggle]);
+
   // Detect mobile viewport
   useEffect(() => {
     const mql = window.matchMedia('(max-width: 768px)');
@@ -95,27 +200,15 @@ const LeftPanelStack = forwardRef(function LeftPanelStack(
     };
   }, [isMobile]);
 
-  // Canvas blackout: mask the WebGL resize flicker during panel snap transitions.
-  // Adds .canvas-resizing to <html> so the overlay fades in fast (50ms),
-  // then removes it after the panel CSS transition completes (350ms) so it fades out.
-  const _blackoutTimer = useRef(null);
+  // Mask the WebGL resize flicker whenever the snap state changes.
+  // (Drag-driven blackout is handled in the pointer handlers above.)
   useEffect(() => {
     if (!isMobile) return;
-    const root = document.documentElement;
-
-    // Cancel any in-flight removal
-    if (_blackoutTimer.current) clearTimeout(_blackoutTimer.current);
-
-    root.classList.add('canvas-resizing');
-    _blackoutTimer.current = setTimeout(() => {
-      root.classList.remove('canvas-resizing');
-      _blackoutTimer.current = null;
-    }, 380); // panel transition (350ms) + small buffer
-
+    blackoutCanvas();
     return () => {
       if (_blackoutTimer.current) clearTimeout(_blackoutTimer.current);
     };
-  }, [isMobile, snapState]); // fires every time the snap changes
+  }, [isMobile, snapState, blackoutCanvas]);
 
   // Click-outside to collapse on mobile
   useEffect(() => {
@@ -165,7 +258,11 @@ const LeftPanelStack = forwardRef(function LeftPanelStack(
       {isMobile && (
         <button
           className="mobile-panel-handle"
-          onClick={handleToggle}
+          onClick={onHandleClick}
+          onPointerDown={onHandlePointerDown}
+          onPointerMove={onHandlePointerMove}
+          onPointerUp={onHandlePointerUp}
+          onPointerCancel={onHandlePointerCancel}
           aria-label={
             snapState === SNAP.COLLAPSED ? 'Expandir panel'
             : snapState === SNAP.COMPACT  ? 'Expandir más'

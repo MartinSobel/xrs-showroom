@@ -1036,7 +1036,7 @@
       opacity 0.3s ease;
   }
 
-  /* ─── Mobile drag handle (clickable) ─── */
+  /* ─── Mobile drag handle (clickable + draggable) ─── */
   .mobile-panel-handle {
     display: flex;
     align-items: center;
@@ -1045,10 +1045,37 @@
     padding: 10px 0 4px;
     border: none;
     background: none;
-    cursor: pointer;
+    cursor: grab;
     flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
     pointer-events: auto;
+    touch-action: none; /* let our drag handler own the vertical gesture */
+  }
+
+  .mobile-panel-handle:active {
+    cursor: grabbing;
+  }
+
+  /* Hide the drag handle while the panel is collapsed — tab tap expands it */
+  .left-panel-stack.stack-tabs-only .mobile-panel-handle {
+    display: none;
+  }
+
+  /* While dragging: disable transition for live response and force content visible */
+  .left-panel-stack.panel-dragging {
+    transition: none !important;
+  }
+
+  .left-panel-stack.panel-dragging .sidebar-panels {
+    display: flex !important;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    pointer-events: auto;
+  }
+
+  .left-panel-stack.panel-dragging .sidebar-header-mobile {
+    transition: none;
   }
 
   .mobile-panel-handle-bar {
