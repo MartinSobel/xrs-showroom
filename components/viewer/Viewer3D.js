@@ -112,6 +112,14 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
       originalPixelRatio: 1,
       originalAnisotropy: 8,
     },
+    // Viewport zoom compensation: when the canvas shrinks (mobile panel
+    // expanding), the building appears smaller in absolute pixels. We track
+    // the tallest canvas height seen as the baseline and apply camera.zoom
+    // to keep the building closer to its natural pixel size. factor is the
+    // damping: 1 = full compensation (matches original pixel size, may clip),
+    // 0 = no compensation. 0.5 is a middle-ground that visibly counteracts the
+    // shrink without overshooting.
+    viewportCompensation: { baselineH: 0, factor: 1.0 },
     // Instancing stats
     instancingStats: null,
     // Splat fade-in animation state
@@ -2255,6 +2263,15 @@ uniform float uSaturation;`
           const h = container.clientHeight;
           if (w === 0 || h === 0) return;
           camera.aspect = w / h;
+          // Viewport zoom compensation: keep the building closer to its
+          // natural on-screen size when the canvas shrinks (mobile panel
+          // expanding). Baseline is the tallest canvas height we've seen.
+          const vc = s.viewportCompensation;
+          if (h > vc.baselineH) vc.baselineH = h;
+          if (vc.baselineH > 0) {
+            const ratio = vc.baselineH / h;
+            camera.zoom = 1 + (ratio - 1) * vc.factor;
+          }
           camera.updateProjectionMatrix();
           renderer.setSize(w, h);
         });
