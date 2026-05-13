@@ -32,6 +32,9 @@ export default function UnidadModal({ unit, onClose, whatsappNumber, projectName
     if (!mounted || !unit) return;
     const handleClickOutside = (e) => {
       if (drawerRef.current && !drawerRef.current.contains(e.target)) {
+        // Ignore interactions inside portaled overlays (panorama viewer lives
+        // outside the drawer DOM tree, so its drag events would otherwise close us).
+        if (e.target.closest('.pano-overlay')) return;
         onClose();
       }
     };
