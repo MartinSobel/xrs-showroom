@@ -6,6 +6,16 @@ Formato: [Versionado Semántico](https://semver.org/lang/es/) · Fechas en AAAA-
 
 ---
 
+## [0.12.3] — 2026-05-13
+
+### ✨ Features
+- per-scene custom domain with host-based proxy rewrite
+
+### 📦 Chores
+- v0.12.2
+
+---
+
 ## [0.12.2] — 2026-05-13
 
 ### 🐛 Fixes
