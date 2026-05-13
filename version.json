@@ -1,9 +1,11 @@
 {
-  "version": "0.12.0",
-  "buildDate": "2026-05-12",
-  "commitHash": "be8b675",
+  "version": "0.12.1",
+  "buildDate": "2026-05-13",
+  "commitHash": "caed2e2",
   "environment": "production",
   "features": [
-    "publish/discard workflow for scene editor"
+    "zoom-compensate camera when canvas shrinks on mobile",
+    "drag-to-resize bottom-sheet panel on mobile",
+    "show project logo between drag handle and tabs on mobile"
   ]
 }

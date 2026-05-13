@@ -6,6 +6,24 @@ Formato: [Versionado Semántico](https://semver.org/lang/es/) · Fechas en AAAA-
 
 ---
 
+## [0.12.1] — 2026-05-13
+
+### ✨ Features
+- zoom-compensate camera when canvas shrinks on mobile
+- drag-to-resize bottom-sheet panel on mobile
+- show project logo between drag handle and tabs on mobile
+
+### 🐛 Fixes
+- snap initial camera position on scene load instead of animating
+
+### ⚡ Performance
+- optimize amenity modal image with next/image
+
+### 📦 Chores
+- v0.12.0
+
+---
+
 ## [0.12.0] — 2026-05-12
 
 ### ✨ Features
