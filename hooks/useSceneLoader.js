@@ -259,6 +259,12 @@ export function useSceneLoader({ viewerRef, scene, viewerReady, isEditor = false
     }
   }, [viewerReady, scene?.tint]);
 
+  // ── Apply BG-only post-process blur ──
+  useEffect(() => {
+    if (!viewerReady || !viewerRef.current) return;
+    viewerRef.current.setBgBlur?.(scene?.bgBlur ?? 0);
+  }, [viewerReady, scene?.bgBlur]);
+
   // ── Apply environment desaturation settings ──
   useEffect(() => {
     if (!viewerReady || !viewerRef.current) return;

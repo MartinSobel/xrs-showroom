@@ -233,6 +233,14 @@ export default function ScenePage() {
     viewerRef.current?.setSaturation(saturation);
   }, []);
 
+  const handleBgBlurChange = useCallback(
+    (value) => {
+      viewerRef.current?.setBgBlur?.(value);
+      if (sceneId) updateScene(sceneId, { bgBlur: value }).catch(console.error);
+    },
+    [sceneId]
+  );
+
   // Apply orbit immediately to controls (no delay)
   const handleApplyOrbit = useCallback(
     (orbit) => {
@@ -549,6 +557,8 @@ export default function ScenePage() {
               onApplyTint={handleApplyTint}
               onSaturationChange={handleSaturationChange}
               onApplySaturation={handleApplySaturation}
+              bgBlur={scene?.bgBlur ?? 0}
+              onBgBlurChange={handleBgBlurChange}
               collapsed={activePanel !== 'assets'}
               onToggle={() => toggle('assets')}
               materialsContent={

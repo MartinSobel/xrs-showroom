@@ -39,6 +39,8 @@ export default function SceneEditorPanel({
   onTintChange,
   onApplyTint,
   onSaturationChange,
+  bgBlur,
+  onBgBlurChange,
   onApplySaturation,
 }) {
   // Pre-upload optimization state
@@ -916,6 +918,21 @@ export default function SceneEditorPanel({
               help="0 = blanco y negro, 1 = color original"
             />
           )}
+        </div>
+
+        {/* ─── Blur del entorno (post-proceso, no afecta la maqueta) ─── */}
+        <div className="asset-transform-section">
+          <div className="asset-transform-title">Blur del entorno</div>
+          <TransformRow
+            label="Blur"
+            labelClass=""
+            value={bgBlur ?? 0}
+            min={0}
+            max={15}
+            step={0.1}
+            onChange={(v) => onBgBlurChange?.(v)}
+            help="Desenfoca skybox, floor y splat con un blur post-proceso. La maqueta 3D queda nítida. 0 desactiva todo el post-proceso (sin costo extra)."
+          />
         </div>
       </AssetAccordion>
     </FloatingPanel>

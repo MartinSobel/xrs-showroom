@@ -72,6 +72,17 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
     },
     // Per-splat saturation uniform (Spark dyno) — populated when splat loads.
     splatSaturationU: null,
+    // Post-process selective blur on the BG (everything except GLB layer).
+    // Resources are created lazily the first time amount > 0.
+    bgBlur: {
+      amount: 0,
+      targetA: null,
+      targetB: null,
+      blurMat: null,
+      quadScene: null,
+      quadCamera: null,
+      quadGeom: null,
+    },
     // Ambient light reference
     ambientLight: null,
     // Store material overrides so they can be applied after GLB loads
@@ -232,6 +243,16 @@ const Viewer3D = forwardRef(function Viewer3D({ scene: sceneData, onReady }, ref
       const value = enabled ? Math.max(0, Math.min(1, raw)) : 1;
       s.saturationUniforms.uSaturation.value = value;
       if (s.splatSaturationU) s.splatSaturationU.value = value;
+    },
+    /**
+     * Live setter for the BG-only post-process blur amount.
+     * 0 disables the effect entirely so the render loop falls back to the
+     * single-pass path — no offscreen render targets, no extra cost.
+     */
+    setBgBlur: (value) => {
+      const s = stateRef.current;
+      const v = Math.max(0, Math.min(20, Number(value) || 0));
+      s.bgBlur.amount = v;
     },
     /**
      * Smoothly fade the tint overlay opacity to the configured targetOpacity over `duration` seconds.
@@ -2285,6 +2306,156 @@ uniform float uSaturation;`
       const levelMap = { ultra: 3, high: 2, medium: 1, low: 0 };
       s.adaptiveQuality.currentLevel = levelMap[quality.name] ?? 2;
 
+      // ─── BG-only post-process blur ───
+      // When amount > 0:
+      //   pass 1: render layer 0 (skybox/floor/splat) into targetA
+      //   pass 2: horizontal gaussian blur targetA → targetB
+      //   pass 3: vertical gaussian blur targetB → canvas
+      //   pass 4: layer 1 (GLB/colliders) on top (autoClear off, depth cleared)
+      //   pass 5: layer 2 (tint) on top
+      // When amount == 0 we skip all of that — single renderer.render call.
+      function ensureBgBlurResources() {
+        if (s.bgBlur.targetA) return;
+        const w = Math.max(1, renderer.domElement.width);
+        const h = Math.max(1, renderer.domElement.height);
+        // targetA needs a depth buffer — splats and the skybox sphere use
+        // depth testing/sorting. Blur ping-pong targetB doesn't need depth
+        // (it's just a fullscreen quad pass).
+        s.bgBlur.targetA = new THREE.WebGLRenderTarget(w, h, {
+          depthBuffer: true,
+          stencilBuffer: false,
+          type: THREE.UnsignedByteType,
+        });
+        s.bgBlur.targetB = new THREE.WebGLRenderTarget(w, h, {
+          depthBuffer: false,
+          stencilBuffer: false,
+          type: THREE.UnsignedByteType,
+        });
+        s.bgBlur.blurMat = new THREE.ShaderMaterial({
+          uniforms: {
+            uTex: { value: null },
+            uDir: { value: new THREE.Vector2(1, 0) },
+            uTexelSize: { value: new THREE.Vector2(1 / w, 1 / h) },
+            uAmount: { value: 1.0 },
+          },
+          vertexShader: `
+            varying vec2 vUv;
+            void main() {
+              vUv = uv;
+              gl_Position = vec4(position.xy, 0.0, 1.0);
+            }
+          `,
+          // Separable 9-tap Gaussian; weights sum to 1.
+          fragmentShader: `
+            precision highp float;
+            varying vec2 vUv;
+            uniform sampler2D uTex;
+            uniform vec2 uDir;
+            uniform vec2 uTexelSize;
+            uniform float uAmount;
+            void main() {
+              vec2 step = uDir * uTexelSize * uAmount;
+              vec4 c = vec4(0.0);
+              c += texture2D(uTex, vUv - step * 4.0) * 0.05;
+              c += texture2D(uTex, vUv - step * 3.0) * 0.09;
+              c += texture2D(uTex, vUv - step * 2.0) * 0.12;
+              c += texture2D(uTex, vUv - step * 1.0) * 0.15;
+              c += texture2D(uTex, vUv             ) * 0.18;
+              c += texture2D(uTex, vUv + step * 1.0) * 0.15;
+              c += texture2D(uTex, vUv + step * 2.0) * 0.12;
+              c += texture2D(uTex, vUv + step * 3.0) * 0.09;
+              c += texture2D(uTex, vUv + step * 4.0) * 0.05;
+              gl_FragColor = c;
+            }
+          `,
+          depthTest: false,
+          depthWrite: false,
+        });
+        s.bgBlur.quadGeom = new THREE.PlaneGeometry(2, 2);
+        const quadMesh = new THREE.Mesh(s.bgBlur.quadGeom, s.bgBlur.blurMat);
+        quadMesh.frustumCulled = false;
+        s.bgBlur.quadScene = new THREE.Scene();
+        s.bgBlur.quadScene.add(quadMesh);
+        s.bgBlur.quadCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+      }
+
+      function renderFrame() {
+        const amount = s.bgBlur.amount;
+        if (amount <= 0.01) {
+          renderer.render(scene, camera);
+          return;
+        }
+        ensureBgBlurResources();
+        const w = renderer.domElement.width;
+        const h = renderer.domElement.height;
+        if (s.bgBlur.targetA.width !== w || s.bgBlur.targetA.height !== h) {
+          s.bgBlur.targetA.setSize(w, h);
+          s.bgBlur.targetB.setSize(w, h);
+          s.bgBlur.blurMat.uniforms.uTexelSize.value.set(1 / w, 1 / h);
+        }
+
+        const origAutoClear = renderer.autoClear;
+        const tintVis = s.tintMesh?.visible;
+
+        // ── Pass 1: render the WHOLE scene (incl. GLB) → targetA ──
+        // Renders into the target without touching layer visibility — Spark's
+        // splat pipeline is fragile when we toggle parts off mid-frame, so we
+        // just blur everything and overdraw the sharp GLB on top later.
+        // Tint stays out of the blurred BG so it composites sharply on top.
+        if (s.tintMesh) s.tintMesh.visible = false;
+
+        renderer.setRenderTarget(s.bgBlur.targetA);
+        renderer.clear();
+        renderer.render(scene, camera);
+
+        if (s.tintMesh) s.tintMesh.visible = tintVis;
+
+        // ── Pass 2: horizontal blur → targetB ──
+        s.bgBlur.blurMat.uniforms.uTex.value = s.bgBlur.targetA.texture;
+        s.bgBlur.blurMat.uniforms.uDir.value.set(1, 0);
+        s.bgBlur.blurMat.uniforms.uAmount.value = amount;
+        renderer.setRenderTarget(s.bgBlur.targetB);
+        renderer.clear();
+        renderer.render(s.bgBlur.quadScene, s.bgBlur.quadCamera);
+
+        // ── Pass 3: vertical blur → canvas ──
+        s.bgBlur.blurMat.uniforms.uTex.value = s.bgBlur.targetB.texture;
+        s.bgBlur.blurMat.uniforms.uDir.value.set(0, 1);
+        renderer.setRenderTarget(null);
+        renderer.clear();
+        renderer.render(s.bgBlur.quadScene, s.bgBlur.quadCamera);
+
+        // ── Pass 4: render only the GLB/colliders/tint on top of the
+        //           blurred canvas (everything else hidden). ──
+        // scene.background applies a clear-to-color at the start of every
+        // renderer.render call regardless of autoClear, which would wipe the
+        // blurred BG we just drew. Null it out for this pass only.
+        const skyVis = s.skyboxMesh?.visible;
+        const floorVis = s.floorMesh?.visible;
+        const splatVis = s.splatMesh?.visible;
+        const sparkVis = s.sparkRenderer?.visible;
+        const maskVis = s.maskHelper?.visible;
+        const origBackground = scene.background;
+        if (s.skyboxMesh) s.skyboxMesh.visible = false;
+        if (s.floorMesh) s.floorMesh.visible = false;
+        if (s.splatMesh) s.splatMesh.visible = false;
+        if (s.sparkRenderer) s.sparkRenderer.visible = false;
+        if (s.maskHelper) s.maskHelper.visible = false;
+        scene.background = null;
+
+        renderer.autoClear = false;
+        renderer.clearDepth();
+        renderer.render(scene, camera);
+
+        scene.background = origBackground;
+        if (s.skyboxMesh) s.skyboxMesh.visible = skyVis;
+        if (s.floorMesh) s.floorMesh.visible = floorVis;
+        if (s.splatMesh) s.splatMesh.visible = splatVis;
+        if (s.sparkRenderer) s.sparkRenderer.visible = sparkVis;
+        if (s.maskHelper) s.maskHelper.visible = maskVis;
+        renderer.autoClear = origAutoClear;
+      }
+
       // ─── Render Loop ───
       function tick() {
         s.animationId = requestAnimationFrame(tick);
@@ -2330,7 +2501,7 @@ uniform float uSaturation;`
             baseZ + (camera.position.z - baseZ) * blendT
           );
         }
-        renderer.render(scene, camera);
+        renderFrame();
       }
       tick();
 
