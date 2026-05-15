@@ -6,6 +6,23 @@ Formato: [Versionado Semántico](https://semver.org/lang/es/) · Fechas en AAAA-
 
 ---
 
+## [0.13.0] — 2026-05-15
+
+### ✨ Features
+- hover, click and selection feedback on colliders
+- post-process blur on the background, sharp GLB on top
+- expose envMapIntensity per material in the editor
+- enlarge mobile logo, make it tap-to-expand, reorder below tabs
+
+### 🐛 Fixes
+- avoid initial-zoom flash on the floor while the GLB streams in
+- stop camera from jumping on transform edits in the scene editor
+
+### 📦 Chores
+- v0.12.4
+
+---
+
 ## [0.12.4] — 2026-05-13
 
 ### 🐛 Fixes

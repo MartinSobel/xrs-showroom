@@ -1,9 +1,12 @@
 {
-  "version": "0.12.4",
-  "buildDate": "2026-05-13",
-  "commitHash": "9c0f44e",
+  "version": "0.13.0",
+  "buildDate": "2026-05-15",
+  "commitHash": "92672d5",
   "environment": "production",
   "features": [
-    "Maintenance and stability improvements"
+    "hover, click and selection feedback on colliders",
+    "post-process blur on the background, sharp GLB on top",
+    "expose envMapIntensity per material in the editor",
+    "enlarge mobile logo, make it tap-to-expand, reorder below tabs"
   ]
 }
