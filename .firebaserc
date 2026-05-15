@@ -1,5 +1,13 @@
 {
   "projects": {
     "default": "xrs-showroom"
+  },
+  "targets": {
+    "xrs-showroom": {
+      "hosting": {
+        "prod": ["xrs-showroom"],
+        "staging": ["xrs-showroom-staging"]
+      }
+    }
   }
 }

@@ -6,6 +6,7 @@ import './styles/units.css';
 import './styles/viewer.css';
 import './styles/login.css';
 import './styles/materials.css';
+import StagingBanner from '@/components/StagingBanner';
 
 export const metadata = {
   title: 'XRS Showroom',
@@ -23,7 +24,10 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        {children}
+        <StagingBanner />
+      </body>
     </html>
   );
 }
