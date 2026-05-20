@@ -1,12 +1,11 @@
 {
-  "version": "0.13.0",
-  "buildDate": "2026-05-15",
-  "commitHash": "92672d5",
+  "version": "0.13.1",
+  "buildDate": "2026-05-20",
+  "commitHash": "a79dd57",
   "environment": "production",
   "features": [
-    "hover, click and selection feedback on colliders",
-    "post-process blur on the background, sharp GLB on top",
-    "expose envMapIntensity per material in the editor",
-    "enlarge mobile logo, make it tap-to-expand, reorder below tabs"
+    "mobile panel — logo above tabs, button-style tabs when collapsed, clear collider on collapse",
+    "mobile collider tap selects unit without opening detail modal",
+    "staging-only floating panel with current build's changelog"
   ]
 }

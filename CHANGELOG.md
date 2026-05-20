@@ -6,6 +6,21 @@ Formato: [Versionado Semántico](https://semver.org/lang/es/) · Fechas en AAAA-
 
 ---
 
+## [0.13.1] — 2026-05-20
+
+### ✨ Features
+- mobile panel — logo above tabs, button-style tabs when collapsed, clear collider on collapse
+- mobile collider tap selects unit without opening detail modal
+- staging-only floating panel with current build's changelog
+
+### ⚡ Performance
+- compress amenity planos to WebP on upload + recompress action
+
+### 📦 Chores
+- v0.13.0
+
+---
+
 ## [0.13.0] — 2026-05-15
 
 ### ✨ Features
