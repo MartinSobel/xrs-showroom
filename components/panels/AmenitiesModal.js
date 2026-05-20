@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { storage } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
+import { ref as dbRef, get } from 'firebase/database';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 
 /**
@@ -267,8 +268,27 @@ export default function AmenitiesModal({ items = [], sceneId, onSave, onClose })
 
       // Flush pending deletes only after a successful save — if the save
       // fails (or user never saves), the old URLs remain valid in Firestore.
+      //
+      // Skip any URL still referenced by the published snapshot: /view/{id}
+      // reads from `published.amenities` until the next publish, so deleting
+      // those files now would 404 the live site. They stay orphaned on
+      // Storage until a future cleanup pass.
       const toDelete = pendingDeletesRef.current.splice(0);
+      let publishedUrls = new Set();
+      try {
+        const snap = await get(dbRef(db, `scenes/${sceneId}/published/amenities/items`));
+        for (const item of Object.values(snap.val() || {})) {
+          if (item?.plano) publishedUrls.add(item.plano);
+        }
+      } catch (err) {
+        console.warn('[AmenitiesModal] Could not read published amenities; skipping deletes to be safe:', err);
+        publishedUrls = new Set(toDelete); // skip everything
+      }
       for (const url of toDelete) {
+        if (publishedUrls.has(url)) {
+          console.log('[AmenitiesModal] Skipping delete — URL still referenced by published snapshot');
+          continue;
+        }
         try {
           await deleteObject(storageRef(storage, url));
         } catch (err) {
@@ -279,7 +299,7 @@ export default function AmenitiesModal({ items = [], sceneId, onSave, onClose })
       console.error('[AmenitiesModal] Save error:', err);
     }
     setSaving(false);
-  }, [rows, onSave, saving]);
+  }, [rows, onSave, saving, sceneId]);
 
   const handleClose = useCallback(() => {
     if (hasChanges) {
